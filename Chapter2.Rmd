@@ -1,0 +1,260 @@
+---
+title: "Chapter 2"
+output: learnr::tutorial
+runtime: shiny
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(shiny)
+library(tidyverse)
+library(DT)
+library(spatstat)
+library(raster)
+
+
+# Detection function
+hazard_halfnormal_detection <- function(sigma, lam0, d) {
+  prob <- 1 - exp(-lam0 * exp(-d * (2 * sigma^2)))
+  return(prob)
+}
+
+calculate_prob_succ <- function(dataframe, detector) {
+  # Calculate distance between each point and the detector
+  dataframe$distance <- sqrt((dataframe$x - detector$x)^2 + (dataframe$y - detector$y)^2)
+
+  # Define distance intervals and associated probabilities
+  distance_intervals <- seq(0, 5, 0.1)
+  probabilities <- hazard_halfnormal_detection(1.5, 15, distance_intervals)
+
+  # Create a new column to store the probabilities
+  dataframe$prob_succ <- NA
+
+  # Create a new column to store the probabilities
+  dataframe$det <- NA
+
+  # Iterate over each row and assign the corresponding probability based on the distance
+  for (i in 1:nrow(dataframe)) {
+    distance <- dataframe$distance[i]
+
+    # Find the index of the interval where the distance falls
+    interval_index <- findInterval(distance, distance_intervals)
+
+    # Assign the probability based on the interval index
+    dataframe$prob_succ[i] <- probabilities[interval_index]
+
+    dataframe$det[i] <- rbinom(1, 1, dataframe$prob_succ[i])
+  }
+
+  # Remove the distance column
+  dataframe$distance <- NULL
+
+  # Mutate each element based on the probability using the binomial distribution
+  # dataframe <- dataframe %>%
+  #   mutate(result = rbinom(n(), size=1, prob_succ))
+
+  return(dataframe$det)
+}
+
+# Microphone array
+
+# Define the range of x and y
+x_range <- seq(1, 4, by = 1)
+y_range <- seq(2, 3, by = 1)
+
+# Create the grid of points
+microphones <- expand.grid(x = x_range, y = y_range)
+```
+
+
+```{sass, echo = FALSE}
+$color1: #668BA4
+$color2: #FEFFDF
+div
+  &.learnBox
+    border-color: $color1
+    border-style: solid
+    background-color: rgba(151, 203, 169,.5)
+    width: 100%
+    padding: 0.5em
+    border-radius: 10px
+    margin: 0 auto 
+    strong
+      color: $color1
+      
+  &.defBox
+    border-color: $color1
+    border-style: solid
+    width: 100%
+    padding: 0.5em
+    border-radius: 5px
+    margin: 0 auto 
+    strong
+      color: $color1
+
+```
+
+## Probability of detection
+
+In this tutorial, all the models that we consider are closed population models. This means that during our survey, we assume that there are no new individuals joining the population (births or immigration) or individuals leaving the population (deaths or emigration). In other words, we assume geographic and demographic closure.  The alternative assumption is that of the population being open, but that requires different analysis which we won’t cover here. Hasn't been developed yet for acoustic? 
+
+Regardless, for both types of models, a key task is to estimate the *probability of detection.* This is because most surveys of wild populations are inherently **imperfect**.  With only a few exceptions, it is practically impossible to observe every individual in a wild population during a survey. 
+
+::: {.defBox}
+**Imperfect detection** 
+:::
+<br>
+When estimating animal abundance, the probability of detection - that is, the probability that any individual in the population gets detected at all - helps us know how many animal we did not detect. If we know the probability of being in our sample, we automatically know the probability of NOT being in our sample and if we don’t take into account imperfect detection, our estimates won’t be realistic or accurate. Let's have a look at how traditional mark-recapture analysis estimates abundance with an example. 
+
+### Example: The Cape Moss Frog 
+In the Cape Peninsula of South Africa, there is this cool little frog that lives in leaf litter and among thickly vegetated mountain streams and river banks (). It’s the perfect specimen for acoustic surveying, because despite the frog being super tiny (about 20-22mm), it can often be heared by its high-pitched call (although some people mistake it for a cricket). 
+
+
+```{r,echo=FALSE,out.width="35%", fig.align='center'} 
+knitr::include_graphics("images/capemossfrog3.jpeg")
+```
+
+
+Let's imagine that we want to estimate the abundance of this frog population and we decide to place eight microphones throughout a patch of its habitat (see the arrangement below). Let's further imagine that we know the locations of the frogs in that patch (click the "Add Frogs!" button) and that they each made one call. We may or may not detect (record) each of the calls made and our microphones can detect multiple calls - click the button "Detect" to see the resulting data collected. The table below is a data frame consisting of capture histories. Each row is a capture history of a call made and indicates at which microphone the call was recorded. Clicked on one of the rows at it will show you the frog location and the microphones that detected the call. 
+
+```{r, echo=FALSE}
+fluidRow(
+  actionButton("addBtn", "Add Points"),
+  actionButton("detBtn", "Detect!"),
+  actionButton("startOverBtn", "Start Over")
+)
+
+fluidRow(
+  column(6, plotOutput("plot")),
+  column(6, DTOutput("capt_hist"))
+)
+
+fluidRow(
+  br(),
+  textOutput("probd")
+)
+```
+
+```{r, context="server",echo=FALSE}
+ # Initial plot
+  output$plot <- renderPlot({
+    ggplot() +
+      geom_point(data = microphones, aes(x = x, y = y, colour = "black")) +
+      xlim(0, 5) +
+      ylim(0, 5)
+  })
+  
+  # Create a reactive dataframe to store the points
+  points <- reactiveVal(data.frame(x = numeric(0), y = numeric(0)))
+  
+  # Add points when the button is clicked
+  observeEvent(input$addBtn, {
+    window <- owin(c(0, 5), c(0, 5))
+    ppp_object <- rpoispp(1, win = window)
+    
+    
+    x <- ppp_object$x
+    y <- ppp_object$y
+    new_points <- data.frame(x, y)
+    
+    points(new_points)
+    
+    # Render the plot
+    output$plot <- renderPlot({
+      ggplot(points(), aes(x = x, y = y), colour = "blue") +
+        geom_point() +
+        geom_point(data = microphones, aes(x = x, y = y, colour = "black")) +
+        xlim(0, 5) +
+        ylim(0, 5) +
+        geom_text(aes(label = rownames(points())), vjust = -0.5)
+    })
+  })
+  
+  
+  # Add points when the button is clicked
+  observeEvent(input$detBtn, {
+    
+    if (is.null(points()) || nrow(points()) == 0) {
+      # Display an error if points are empty
+      showModal(modalDialog(
+        title = "Oops!",
+        "Please add frogs before surveying!",
+        easyClose = TRUE
+      ))
+    } else {
+      # Calculate probabilities
+      prob_hist <- matrix(NA, nrow = nrow(points()), ncol = nrow(microphones))
+      for (i in 1:nrow(microphones)) {
+        prob_hist[, i] <- calculate_prob_succ(points(), microphones[i, ])
+      }
+      
+      output$capt_hist <- DT::renderDT({
+        # det_ind <- as.data.frame(prob_hist) %>%
+        #   mutate(num = paste("Frog",row_number()))
+        #
+        # det_ind <- det_ind[rowSums(det_ind[,1:8])>0,]
+        # colnames(det_ind) <- 1:8
+        det_ind <- as.data.frame(prob_hist)
+        rownames(det_ind) <- paste("Frog", rownames(det_ind))
+        colnames(det_ind) <- paste("M", 1:8)
+        det_ind <- det_ind[rowSums(det_ind[, 1:8]) > 0, ]
+        
+        
+        det_ind %>%
+          DT::datatable(
+            rownames = TRUE,
+            class = "cell-border",
+            escape = FALSE,
+            extensions = "Buttons",
+            selection = "single",
+            options = list(dom = "t", ordering = F)
+          )
+      })
+      
+      
+      # Render the plot
+      output$plot <- renderPlot({
+        dat <- cbind(points(), prob_hist)
+        
+        det_dat <- dat %>%
+          rowwise() %>%
+          mutate(
+            sum = sum(c_across(3:10)),
+            det = ifelse(sum > 0, "Detected", "Not Detected")
+          )
+        
+        det_dat %>% 
+          data.frame()%>%
+          mutate(num = row_number()) %>%
+          ggplot(aes(x = x, y = y, colour = det)) +
+          geom_point() +
+          geom_point(data = microphones, aes(x = x, y = y), colour = "black") +
+          xlim(0, 5) +
+          geom_text(aes(label = num), vjust = -0.5) +
+          scale_color_manual(values = c("Detected" = "darkgreen",
+                                        "Not Detected"= "darkred"))
+      })
+    }
+
+    
+  })
+  
+  # Reset to initial state when "Start Over" button is clicked
+  observeEvent(input$startOverBtn, {
+    points(data.frame(x = numeric(0), y = numeric(0)))
+    
+    output$plot <- renderPlot({
+      ggplot() +
+        geom_point(data = microphones, aes(x = x, y = y, colour = "black")) +
+        xlim(0, 5) +
+        ylim(0, 5)
+    })
+    
+    output$capt_hist <- DT::renderDT(NULL)
+  })
+  
+```
+
+```{r detprob,echo=FALSE}
+```

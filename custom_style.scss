@@ -1,0 +1,8 @@
+$color1: blue
+div
+  &.mybox
+    border-color: $color1
+    border-style: solid
+    padding: 0.5em
+    strong
+      color: $color1

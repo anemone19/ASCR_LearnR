@@ -1,0 +1,8 @@
+div.mybox {
+  border-color: blue;
+  border-style: solid;
+  padding: 0.5em;
+}
+div.mybox strong {
+  color: blue;
+}
