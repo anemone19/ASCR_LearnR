@@ -3,7 +3,7 @@ library(MASS)
 library(tidyverse)
 library(spatstat)
 library(raster)
-
+library(ggimage)
 # Microphone array
 
 # Define the range of x and y
@@ -34,8 +34,11 @@ ggplot(ppp_df, aes(x = x, y = y)) +
 plot1_df <- rbind(ppp_df, microphones)
 plot1_df$type <- as.factor(c(rep("call", nrow(ppp_df)), rep("micro", nrow(microphones))))
 
-ggplot() +
-  geom_point(data = plot1_df, aes(x = x, y = y, colour = type))
+
+frog_image <- "images/frogGraphic.png"
+
+ggplot(data = plot1_df, aes(x = x, y = y, colour = type)) +
+  geom_image(image=frog_image)
 
 
 # Detection function
@@ -116,11 +119,37 @@ det_dat <- dat %>%
   mutate(num = row_number())
 
 
-ggplot(det_dat, aes(x = x, y = y,colour=det)) +
-  geom_point(shape="\u1318") +
-  geom_point(data=microphones,aes(x=x,y=y),colour="black")+
-  xlim(0,5)+
-  geom_text(aes(label = num), vjust = -0.5)
+dat <- cbind(ppp_df, prob_hist)
+
+det_dat <- dat %>%
+  rowwise() %>%
+  mutate(
+    sum = sum(c_across(3:10)),
+    det = ifelse(sum > 0, "Detected", "Not Detected")
+  )
+
+det_dat <- det_dat %>% 
+  data.frame()%>%
+  mutate(num = row_number()) 
+
+frog_image <- "images/frogGraphic.png"
+micro_image <- "images/micro.png"
+
+ggplot(det_dat) +
+  geom_image(aes(x = x, y = y, colour = det,image=frog_image)) +
+  geom_image(data = microphones, aes(x = x, y = y, image = micro_image),size=0.25) +
+  xlim(0, 5) +
+  geom_text(aes(x=x,y=y,label = num), vjust = -1.5) +
+  scale_color_manual(values = c("Detected" = "darkgreen",
+                                "Not Detected"= "darkred"))+
+  theme(legend.position = "top",
+        legend.title = element_blank(),
+        panel.background = element_rect(fill = "#DDE0AB"),
+        axis.title = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_blank())
 
   
 mean(det_ind)

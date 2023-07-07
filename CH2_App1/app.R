@@ -1,8 +1,14 @@
 library(shiny)
-library(ggplot2)
+library(tidyverse)
 library(DT)
 library(spatstat)
 library(raster)
+
+
+# frog image 
+
+frog_image <- "www/frogGraphic.png"
+micro_image <- "www/micro.png"
 
 # Detection function
 hazard_halfnormal_detection <- function(sigma, lam0, d) {
@@ -56,6 +62,7 @@ y_range <- seq(2,3, by = 1)
 # Create the grid of points
 microphones <- expand.grid(x = x_range, y = y_range)
 
+
 # Define UI
 ui <- fluidPage(
   titlePanel("Shiny App - Add Points to Plot"),
@@ -77,9 +84,18 @@ server <- function(input, output, session) {
   # Initial plot
   output$plot <- renderPlot({
     ggplot() +
-      geom_point(data = microphones, aes(x = x, y = y, colour = "black")) +
+      geom_image(data = microphones, aes(x = x, y = y, image = micro_image),size=0.3) +
       xlim(0, 5) +
-      ylim(0, 5)
+      ylim(0, 5) +
+      theme_minimal()+
+      theme(legend.position = "top",
+            legend.title = element_blank(),
+            panel.background = element_rect(fill = "#DDE0AB"),
+            axis.title = element_blank(),
+            axis.text = element_blank(),
+            axis.ticks = element_blank(),
+            panel.grid.minor = element_blank(),
+            panel.grid.major = element_blank())
   })
   
   # Create a reactive dataframe to store the points
@@ -99,15 +115,23 @@ server <- function(input, output, session) {
     
     # Render the plot
     output$plot <- renderPlot({
-      ggplot(points(), aes(x = x, y = y), colour = "blue") +
-        geom_point() +
-        geom_point(data = microphones, aes(x = x, y = y, colour = "black")) +
+      ggplot(points(), aes(x = x, y = y)) +
+        geom_image(image=frog_image, colour = "blue",size=0.11) +
+        geom_image(data = microphones, aes(x = x, y = y, image = micro_image),size=0.25) +
         xlim(0, 5) +
         ylim(0, 5) +
-        geom_text(aes(label = rownames(points())), vjust = -0.5)
+        geom_text(aes(label = rownames(points())),vjust = 0.5, hjust = 0.5, colour="white",size=5,fontface="bold")+
+        theme(legend.position = "top",
+              legend.title = element_blank(),
+              panel.background = element_rect(fill = "#DDE0AB"),
+              axis.title = element_blank(),
+              axis.text = element_blank(),
+              axis.ticks = element_blank(),
+              panel.grid.minor = element_blank(),
+              panel.grid.major = element_blank())
     })
   })
-  
+
   
   # Add points when the button is clicked
   observeEvent(input$detBtn, {
@@ -161,16 +185,26 @@ server <- function(input, output, session) {
             det = ifelse(sum > 0, "Detected", "Not Detected")
           )
         
-        det_dat %>% 
+        det_dat <- det_dat %>% 
           data.frame()%>%
-          mutate(num = row_number()) %>%
-          ggplot(aes(x = x, y = y, colour = det)) +
-          geom_point() +
-          geom_point(data = microphones, aes(x = x, y = y), colour = "black") +
+          mutate(num = row_number()) 
+
+        
+        ggplot(det_dat) +
+          geom_image(aes(x = x, y = y, colour = det,image=frog_image),size=0.12) +
+          geom_image(data = microphones, aes(x = x, y = y, image = micro_image),size=0.25) +
           xlim(0, 5) +
-          geom_text(aes(label = num), vjust = -0.5) +
+          geom_text(aes(x=x,y=y,label = num), vjust = 0.5, hjust = 0.5, colour="white",size=5,fontface="bold") +
           scale_color_manual(values = c("Detected" = "darkgreen",
-                                        "Not Detected"= "darkred"))
+                                        "Not Detected"= "darkred"))+
+          theme(legend.position = "top",
+                legend.title = element_blank(),
+                panel.background = element_rect(fill = "#DDE0AB"),
+                axis.title = element_blank(),
+                axis.text = element_blank(),
+                axis.ticks = element_blank(),
+                panel.grid.minor = element_blank(),
+                panel.grid.major = element_blank())
       })
     }
 
@@ -183,9 +217,17 @@ server <- function(input, output, session) {
     
     output$plot <- renderPlot({
       ggplot() +
-        geom_point(data = microphones, aes(x = x, y = y, colour = "black")) +
+        geom_image(data = microphones, aes(x = x, y = y, image = micro_image),size=0.25)+
         xlim(0, 5) +
-        ylim(0, 5)
+        ylim(0, 5) +
+        theme(legend.position = "top",
+              legend.title = element_blank(),
+              panel.background = element_rect(fill = "#DDE0AB"),
+              axis.title = element_blank(),
+              axis.text = element_blank(),
+              axis.ticks = element_blank(),
+              panel.grid.minor = element_blank(),
+              panel.grid.major = element_blank())
     })
     
     output$capt_hist <- DT::renderDT(NULL)
@@ -193,5 +235,6 @@ server <- function(input, output, session) {
   
 }
 
+# 
 # Run the application
 shinyApp(ui = ui, server = server)
