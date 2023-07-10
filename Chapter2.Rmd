@@ -4,50 +4,82 @@ output: learnr::tutorial
 runtime: shiny
 ---
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(shiny)
+library(tidyverse)
+library(DT)
+library(spatstat)
+library(raster)
+library(ggimage)
+library(shinyWidgets)
+library(shinydashboard)
 
+frog_image <- "images/frogGraphic.png"
+micro_image <- "images/micro.png"
 
+# Detection function
+hazard_halfnormal_detection <- function(sigma, lam0, d) {
+  prob <- 1 - exp(-lam0 * exp(-d * (2 * sigma^2)))
+  return(prob)
+}
 
-```{sass, echo = FALSE}
-$color1: #668BA4
-$color2: #FEFFDF
-div
-  &.learnBox
-    border-color: $color1
-    border-style: solid
-    background-color: rgba(151, 203, 169,.5)
-    width: 100%
-    padding: 0.5em
-    border-radius: 10px
-    margin: 0 auto 
-    strong
-      color: $color1
-      
-  &.defBox
-    border-color: $color1
-    border-style: solid
-    width: 100%
-    padding: 0.5em
-    border-radius: 5px
-    margin: 0 auto 
-    strong
-      color: $color1
+calculate_prob_succ <- function(dataframe, detector) {
+  # Calculate distance between each point and the detector
+  dataframe$distance <- sqrt((dataframe$x - detector$x)^2 + (dataframe$y - detector$y)^2)
 
+  # Define distance intervals and associated probabilities
+  distance_intervals <- seq(0, 5, 0.1)
+  probabilities <- hazard_halfnormal_detection(1.5, 15, distance_intervals)
+
+  # Create a new column to store the probabilities
+  dataframe$prob_succ <- NA
+
+  # Create a new column to store the probabilities
+  dataframe$det <- NA
+
+  # Iterate over each row and assign the corresponding probability based on the distance
+  for (i in 1:nrow(dataframe)) {
+    distance <- dataframe$distance[i]
+
+    # Find the index of the interval where the distance falls
+    interval_index <- findInterval(distance, distance_intervals)
+
+    # Assign the probability based on the interval index
+    dataframe$prob_succ[i] <- probabilities[interval_index]
+
+    dataframe$det[i] <- rbinom(1, 1, dataframe$prob_succ[i])
+  }
+
+  # Remove the distance column
+  dataframe$distance <- NULL
+
+  # Mutate each element based on the probability using the binomial distribution
+  # dataframe <- dataframe %>%
+  #   mutate(result = rbinom(n(), size=1, prob_succ))
+
+  return(dataframe$det)
+}
+
+# Microphone array
+
+# Define the range of x and y
+x_range <- seq(1, 4, by = 1)
+y_range <- seq(2, 3, by = 1)
+
+# Create the grid of points
+microphones <- expand.grid(x = x_range, y = y_range)
 ```
+
 
 ## Probability of detection
 
 In this tutorial, all the models that we consider are closed population models. This means that during our survey, we assume that there are no new individuals joining the population (births or immigration) or individuals leaving the population (deaths or emigration). In other words, we assume geographic and demographic closure.  The alternative assumption is that of the population being open, but that requires different analysis which we won’t cover here. Hasn't been developed yet for acoustic? 
 
-Regardless, for both types of models, a key task is to estimate the *probability of detection.* This is because most surveys of wild populations are inherently **imperfect**.  With only a few exceptions, it is practically impossible to observe every individual in a wild population during a survey. 
-
-::: {.defBox}
-**Imperfect detection** 
-:::
-<br>
-When estimating animal abundance, the probability of detection - that is, the probability that any individual in the population gets detected at all - helps us know how many animal we did not detect. If we know the probability of being in our sample, we automatically know the probability of NOT being in our sample and if we don’t take into account imperfect detection, our estimates won’t be realistic or accurate. Let's have a look at how traditional mark-recapture analysis estimates abundance with an example. 
+Regardless, for both types of models, a key task is to estimate the <span style="color:#668BA4;font-weight:bold;">probability of detection</span>. This is because most surveys of wild populations are inherently **imperfect**.  With only a few exceptions, it is practically impossible to observe every individual in a wild population during a survey. When estimating animal abundance, the probability of detection - that is, the probability that any individual in the population gets detected at all - helps us know how many animal we did not detect. If we know the probability of being in our sample, we automatically know the probability of NOT being in our sample. We have to account for this <span style="color:#668BA4;font-weight:bold;"> imperfect detection</span>, because otherwise our results won’t be realistic or accurate. Let's have a look at how traditional mark-recapture analysis estimates abundance with an example. 
 
 ### Example: The Cape Moss Frog 
-In the Cape Peninsula of South Africa, there is this cool little frog that lives in leaf litter and among thickly vegetated mountain streams and river banks (). It’s the perfect specimen for acoustic surveying, because despite the frog being super tiny (about 20-22mm), it can often be heared by its high-pitched call (although some people mistake it for a cricket). 
+In the Cape Peninsula of South Africa, there is this cool little frog that lives in leaf litter and among thickly vegetated mountain streams and river banks. It’s the perfect specimen for acoustic surveying, because despite the frog being super tiny (about 20-22mm), it can often be heard by its high-pitched call (although some people mistake it for a cricket). 
 
 
 ```{r,echo=FALSE,out.width="35%", fig.align='center'} 
@@ -55,18 +87,30 @@ knitr::include_graphics("images/capemossfrog3.jpeg")
 ```
 
 
-Let's imagine that we want to estimate the abundance of this frog population and we decide to place eight microphones throughout a patch of its habitat (see the arrangement below). Let's further imagine that we know the locations of the frogs in that patch (click the "Add Frogs!" button) and that they each made one call. We may or may not detect (record) each of the calls made and our microphones can detect multiple calls - click the button "Detect" to see the resulting data collected. The table below is a data frame consisting of capture histories. Each row is a capture history of a call made and indicates at which microphone the call was recorded. Clicked on one of the rows at it will show you the frog location and the microphones that detected the call. 
+Let's imagine that we want to estimate the abundance of this frog population and we decide to place eight microphones throughout a patch of its habitat (see the arrangement below). Let's further imagine that we know the locations of the frogs in that patch (click the "Reveal Frogs" button) and that they each made one call. We may or may not detect (record) each of the calls made and our microphones can detect multiple calls - click the button "Survey!" to see the resulting data collected. The table above is a data frame consisting of <span style="color:#668BA4;font-weight:bold;"> capture histories</span>. Each row is a capture history of a call made and indicates at which microphone the call was recorded. An entry equal to "1" indicates that the call (i.e. row) was recorded at that microphone (i.e. column) and if not, the entry will be a zero. Click on one of the rows at it will show you the frog location and the microphones that detected the call. 
 
 ```{r, echo=FALSE}
 fluidRow(
-  actionButton("addBtn", "Add Points"),
-  actionButton("detBtn", "Detect!"),
-  actionButton("startOverBtn", "Start Over")
+  column(
+    6,
+    actionButton("addBtn", "Add Points"),
+    actionButton("detBtn", "Detect!"),
+    actionButton("startOverBtn", "Start Over")
+  ),
+  column(6,
+         actionButton("repeatBtn", "Repeat x 1000"),
+         align="right")
 )
 
 fluidRow(
   column(6, plotOutput("plot")),
-  column(6, DTOutput("capt_hist"))
+  column(
+    6, dataTableOutput("capt_hist"),
+    br(),
+    fluidRow(valueBoxOutput("trueN", width = 4),
+             valueBoxOutput("estN", width = 4),
+             valueBoxOutput("probD", width = 4))
+  )
 )
 
 fluidRow(
@@ -76,168 +120,237 @@ fluidRow(
 ```
 
 ```{r, context="server",echo=FALSE}
- # Initial plot
+# Initial plot and empty dataframe
+
+output$plot <- renderPlot({
+  ggplot() +
+    geom_image(data = microphones, aes(x = x, y = y, image = micro_image), size = 0.3) +
+    xlim(0, 5) +
+    ylim(0, 5) +
+    theme_minimal() +
+    theme(
+      legend.position = "top",
+      legend.title = element_blank(),
+      panel.background = element_rect(fill = "#DDE0AB"),
+      axis.title = element_blank(),
+      axis.text = element_blank(),
+      axis.ticks = element_blank(),
+      panel.grid.minor = element_blank(),
+      panel.grid.major = element_blank()
+    )
+})
+
+output$capt_hist <- DT::renderDT({
+  empty_dat <- matrix(nrow = 10, ncol = 8)
+  colnames(empty_dat) <- paste0("M", 1:8)
+
+  datatable(empty_dat,
+    rownames = TRUE,
+    class = "cell-border",
+    escape = FALSE,
+    extensions = "Buttons",
+    selection = "single",
+    options = list(dom = "t", ordering = F)
+  )
+})
+
+
+# Create a reactive dataframe to store locations of frogs
+points <- reactiveVal(data.frame(x = numeric(0), y = numeric(0)))
+
+# Add frogs when the addBtn is clicked
+observeEvent(input$addBtn, {
+  window <- owin(c(0, 5), c(0, 5))
+  ppp_object <- rpoispp(2, win = window)
+
+  x <- ppp_object$x
+  y <- ppp_object$y
+  new_points <- data.frame(x, y)
+
+  points(new_points)
+
+  # Render new plot with frogs
   output$plot <- renderPlot({
-    ggplot() +
-      geom_image(data = microphones, aes(x = x, y = y, image = micro_image),size=0.3) +
+    ggplot(points(), aes(x = x, y = y)) +
+      geom_image(image = frog_image, colour = "#8A3A0D", size = 0.09) +
+      geom_image(data = microphones, aes(x = x, y = y, image = micro_image), size = 0.25) +
       xlim(0, 5) +
       ylim(0, 5) +
-      theme_minimal()+
-      theme(legend.position = "top",
-            legend.title = element_blank(),
-            panel.background = element_rect(fill = "#DDE0AB"),
-            axis.title = element_blank(),
-            axis.text = element_blank(),
-            axis.ticks = element_blank(),
-            panel.grid.minor = element_blank(),
-            panel.grid.major = element_blank())
+      geom_text(aes(label = rownames(points())), vjust = 0.5, hjust = 0.5, colour = "white", size = 4, fontface = "bold") +
+      theme(
+        legend.position = "top",
+        legend.title = element_blank(),
+        panel.background = element_rect(fill = "#DDE0AB"),
+        axis.title = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_blank()
+      )
   })
   
-  # Create a reactive dataframe to store the points
-  points <- reactiveVal(data.frame(x = numeric(0), y = numeric(0)))
+      output$trueN <- shinydashboard::renderValueBox({
+      N <- nrow(points())
+      shinydashboard::valueBox(N, "Number of calls")
+    })
+})
+
+
+# Add points when the button is clicked
+observeEvent(input$detBtn, {
+  if (is.null(points()) || nrow(points()) == 0) {
+    # Display an error if points are empty
+    showModal(modalDialog(
+      title = "Oops!",
+      "Please add frogs before surveying!",
+      easyClose = TRUE
+    ))
+  } else {
+    
+    # Calculate probabilities
+    prob_hist <- matrix(NA, nrow = nrow(points()), ncol = nrow(microphones))
+    for (i in 1:nrow(microphones)) {
+      prob_hist[, i] <- calculate_prob_succ(points(), microphones[i, ])
+    }
   
-  # Add points when the button is clicked
-  observeEvent(input$addBtn, {
-    window <- owin(c(0, 5), c(0, 5))
-    ppp_object <- rpoispp(1, win = window)
     
-    
-    x <- ppp_object$x
-    y <- ppp_object$y
-    new_points <- data.frame(x, y)
-    
-    points(new_points)
-    
+    det_ind <- as.data.frame(prob_hist)
+      rownames(det_ind) <- paste("Frog", rownames(det_ind))
+      colnames(det_ind) <- paste("M", 1:8)
+      det_ind <- det_ind[rowSums(det_ind[, 1:8]) > 0, ]
+      
+    output$capt_hist <- DT::renderDT({
+      
+      det_ind %>%
+        DT::datatable(
+          rownames = TRUE,
+          class = "cell-border",
+          escape = FALSE,
+          extensions = "Buttons",
+          selection = "single",
+          options = list(dom = "t", ordering = F)
+        )%>%
+        formatStyle( 0, target= 'row',color = 'black', lineHeight='50%')
+    })
+
+
     # Render the plot
     output$plot <- renderPlot({
-      ggplot(points(), aes(x = x, y = y)) +
-        geom_image(image=frog_image, colour = "blue",size=0.11) +
-        geom_image(data = microphones, aes(x = x, y = y, image = micro_image),size=0.25) +
+      dat <- cbind(points(), prob_hist)
+
+      det_dat <- dat %>%
+        rowwise() %>%
+        mutate(
+          sum = sum(c_across(3:10)),
+          det = ifelse(sum > 0, "Detected", "Not Detected")
+        )
+
+      det_dat <- det_dat %>%
+        data.frame() %>%
+        mutate(num = row_number())
+
+
+      ggplot(det_dat) +
+        geom_image(aes(x = x, y = y, colour = det, image = frog_image), size = 0.09) +
+        geom_image(data = microphones, aes(x = x, y = y, image = micro_image), size = 0.25) +
         xlim(0, 5) +
-        ylim(0, 5) +
-        geom_text(aes(label = rownames(points())),vjust = 0.5, hjust = 0.5, colour="white",size=5,fontface="bold")+
-        theme(legend.position = "top",
-              legend.title = element_blank(),
-              panel.background = element_rect(fill = "#DDE0AB"),
-              axis.title = element_blank(),
-              axis.text = element_blank(),
-              axis.ticks = element_blank(),
-              panel.grid.minor = element_blank(),
-              panel.grid.major = element_blank())
+        geom_text(aes(x = x, y = y, label = num), vjust = 0.5, hjust = 0.5, colour = "white", size = 4, fontface = "bold") +
+        scale_color_manual(values = c(
+          "Detected" = "darkgreen",
+          "Not Detected" = "darkred"
+        )) +
+        theme(
+          legend.position = "bottom",
+          legend.title = element_blank(),
+          panel.background = element_rect(fill = "#DDE0AB"),
+          axis.title = element_blank(),
+          axis.text = element_blank(),
+          axis.ticks = element_blank(),
+          panel.grid.minor = element_blank(),
+          panel.grid.major = element_blank(),
+          legend.text = element_text(size = 12)
+        )
     })
-  })
 
-  
-  # Add points when the button is clicked
-  observeEvent(input$detBtn, {
-    
-    if (is.null(points()) || nrow(points()) == 0) {
-      # Display an error if points are empty
-      showModal(modalDialog(
-        title = "Oops!",
-        "Please add frogs before surveying!",
-        easyClose = TRUE
-      ))
-    } else {
-      # Calculate probabilities
-      prob_hist <- matrix(NA, nrow = nrow(points()), ncol = nrow(microphones))
-      for (i in 1:nrow(microphones)) {
-        prob_hist[, i] <- calculate_prob_succ(points(), microphones[i, ])
-      }
-      
-      output$capt_hist <- DT::renderDT({
-        # det_ind <- as.data.frame(prob_hist) %>%
-        #   mutate(num = paste("Frog",row_number()))
-        #
-        # det_ind <- det_ind[rowSums(det_ind[,1:8])>0,]
-        # colnames(det_ind) <- 1:8
-        det_ind <- as.data.frame(prob_hist)
-        rownames(det_ind) <- paste("Frog", rownames(det_ind))
-        colnames(det_ind) <- paste("M", 1:8)
-        det_ind <- det_ind[rowSums(det_ind[, 1:8]) > 0, ]
-        
-        
-        det_ind %>%
-          DT::datatable(
-            rownames = TRUE,
-            class = "cell-border",
-            escape = FALSE,
-            extensions = "Buttons",
-            selection = "single",
-            options = list(dom = "t", ordering = F)
-          )
-      })
-      
-      
-      # Render the plot
-      output$plot <- renderPlot({
-        dat <- cbind(points(), prob_hist)
-        
-        det_dat <- dat %>%
-          rowwise() %>%
-          mutate(
-            sum = sum(c_across(3:10)),
-            det = ifelse(sum > 0, "Detected", "Not Detected")
-          )
-        
-        det_dat <- det_dat %>% 
-          data.frame()%>%
-          mutate(num = row_number()) 
-
-        
-        ggplot(det_dat) +
-          geom_image(aes(x = x, y = y, colour = det,image=frog_image),size=0.12) +
-          geom_image(data = microphones, aes(x = x, y = y, image = micro_image),size=0.25) +
-          xlim(0, 5) +
-          geom_text(aes(x=x,y=y,label = num), vjust = 0.5, hjust = 0.5, colour="white",size=5,fontface="bold") +
-          scale_color_manual(values = c("Detected" = "darkgreen",
-                                        "Not Detected"= "darkred"))+
-          theme(legend.position = "top",
-                legend.title = element_blank(),
-                panel.background = element_rect(fill = "#DDE0AB"),
-                axis.title = element_blank(),
-                axis.text = element_blank(),
-                axis.ticks = element_blank(),
-                panel.grid.minor = element_blank(),
-                panel.grid.major = element_blank())
-      })
-    }
-
-    
-  })
-  
-  # Reset to initial state when "Start Over" button is clicked
-  observeEvent(input$startOverBtn, {
-    points(data.frame(x = numeric(0), y = numeric(0)))
-    
-    output$plot <- renderPlot({
-      ggplot() +
-        geom_image(data = microphones, aes(x = x, y = y, image = micro_image),size=0.25)+
-        xlim(0, 5) +
-        ylim(0, 5) +
-        theme(legend.position = "top",
-              legend.title = element_blank(),
-              panel.background = element_rect(fill = "#DDE0AB"),
-              axis.title = element_blank(),
-              axis.text = element_blank(),
-              axis.ticks = element_blank(),
-              panel.grid.minor = element_blank(),
-              panel.grid.major = element_blank())
+    output$trueN <- shinydashboard::renderValueBox({
+      N <- nrow(points())
+      shinydashboard::valueBox(N, "Number of calls")
     })
     
-    output$capt_hist <- DT::renderDT(NULL)
+     output$estN <- shinydashboard::renderValueBox({
+      ave <- 1 - (1 - mean(prob_hist))^8
+      Nhat <- nrow(det_ind) / ave
+        shinydashboard::valueBox(round(Nhat), "Estimated number of calls")
+    })
+     
+      output$probD <- shinydashboard::renderValueBox({
+      probd <- mean(prob_hist)
+        shinydashboard::valueBox(round(probd,3), "Average probability of detection")
+    })
+
+  }
+})
+
+# Reset to initial state when "Start Over" button is clicked
+observeEvent(input$startOverBtn, {
+  points(data.frame(x = numeric(0), y = numeric(0)))
+
+  output$plot <- renderPlot({
+    ggplot() +
+      geom_image(data = microphones, aes(x = x, y = y, image = micro_image), size = 0.25) +
+      xlim(0, 5) +
+      ylim(0, 5) +
+      theme(
+        legend.position = "top",
+        legend.title = element_blank(),
+        panel.background = element_rect(fill = "#DDE0AB"),
+        axis.title = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_blank()
+      )
+  })
+
+  output$capt_hist <- DT::renderDT({
+    empty_dat <- matrix(nrow = 10, ncol = 8)
+    colnames(empty_dat) <- paste0("M", 1:8)
+
+    datatable(empty_dat,
+      rownames = TRUE,
+      class = "cell-border",
+      escape = FALSE,
+      extensions = "Buttons",
+      selection = "single",
+      options = list(dom = "t", ordering = F)
+    )
   })
   
+   output$trueN <- shinydashboard::renderValueBox({
+      shinydashboard::valueBox(NULL,NULL)
+    })
+     
+   output$estN <- shinydashboard::renderValueBox({
+      shinydashboard::valueBox(NULL,NULL)
+    })
+     
+   output$probD <- shinydashboard::renderValueBox({
+      shinydashboard::valueBox(NULL,NULL)
+    })
+})
 
+# Simualtion 
+
+observeEvent(input$repeatBtn,{
   
-  
+})
 ```
 
-```{r detprob,echo=FALSE}
-```
 
-- always lower than true value 
-- assuming equal probability of detection 
-- heterogeineity inherent due to design, frogs closer microphones more likely to be detected
-- in fact the probability of detection thats governing that process looks something like this 
-- or say lets measure distance between detected and micro and place into distance bins 
+Okay, so with traditional MR, we can calculate the probability of detection by simply taking the proportion of 1's in our whole dataset! 
+
+If you've surveyed the same set of frogs multiple times, you'll see that most of the time our estimates is lower than the actual number of calls made. In fact, if you click the button "Repeat x 1000", a 1000 surveys of your frog population will be conducted and the resulting 1000 estimates will be visualised as a histogram.  
+
+Immediately it is clear the peak of the histogram is quite far away from the true value, which tells us that on average our estimate is smaller than the actual number of calls made. If you're familiar with statistical terminology, we have shown through simulation that our estimate is negatively biased. We don't want this! Remember, our example is on a very small and arbitrary scale. In reality, concluding that your population is much smaller than what actually exists, could lead to misplaced conservation efforts and mislead decision-making. 
+
+So, what's happening here? Well, recall that we are taking the overall probability of detection, so essentially we are assuming that each call is equally likely to be detected. But is that true? If you have surveyed a few times, you'll see that frogs that are closer to the microphones are almost always detected and frogs that are within short distances to multiple microphones get detected multiple times! The calls made by those frogs are more likely (i.e. higher probability of detection) to be recorded than those far away. That means that detection probability depends on distance, more specifically detection probability decreases with increasing distance. Let's look at this in a bit more detail. 

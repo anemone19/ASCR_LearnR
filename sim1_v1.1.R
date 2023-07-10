@@ -22,7 +22,7 @@ ggplot(microphones, aes(x = x, y = y)) +
 # Poisson point process
 
 window <- owin(c(0, 5), c(0, 5))
-ppp_object <- rpoispp(1, win = window)
+ppp_object <- rpoispp(0.5, win = window)
 
 ppp_df <- as.data.frame(ppp_object)
 
@@ -152,14 +152,9 @@ ggplot(det_dat) +
         panel.grid.major = element_blank())
 
   
-mean(det_ind)
+mean(prob_hist)
 
-indp <- apply(det_ind, 2, mean)
-boxplot(indp)
-
-ave <- 1 - (1 - mean(det_ind))^8
-
+ave <- 1 - (1 - mean(prob_hist))^8
+nrow(prob_hist)
 nrow(det_ind) / ave
-
-
 

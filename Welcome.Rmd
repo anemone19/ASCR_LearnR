@@ -98,6 +98,10 @@ div
     margin: 0 auto 
     strong
       color: $color1
+span 
+  &.def
+  strong
+    color: $color1
 
 ```
 
