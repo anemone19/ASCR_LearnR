@@ -6,6 +6,8 @@ library(raster)
 library(ggimage)
 library(shinyWidgets)
 library(shinydashboard)
+library(mt5751a)
+
 # frog image 
 
 frog_image <- "www/frogGraphic.png"
@@ -69,13 +71,14 @@ ui <- fluidPage(
   fluidRow(
     column(
       6,
-      actionButton("addBtn", "Add Points"),
-      actionButton("detBtn", "Detect!"),
-      actionButton("startOverBtn", "Start Over")
+      actionButton("addBtn", "Reveal frogs 🐸", style = "color: #fff; background-color: #668ba4; border-color: #2e6da4"),
+      actionButton("detBtn", "Survey! 🎙", style = "color: #fff; background-color: #668ba4; border-color: #2e6da4"),
+      actionButton("startOverBtn", "Start Over 🔄", style = "color: #fff; background-color: #668ba4; border-color: #2e6da4")
     ),
     column(6,
-           actionButton("repeatBtn", "Repeat x 1000"),
-           align="right")
+           actionButton("repeatBtn", "Repeat x 5000", style = "color: #fff; background-color: #668ba4; border-color: #2e6da4"),
+           align = "right"
+    )
   ),
   
   fluidRow(
@@ -83,15 +86,18 @@ ui <- fluidPage(
     column(
       6, dataTableOutput("capt_hist"),
       br(),
-      fluidRow(valueBoxOutput("trueN", width = 4),
-               valueBoxOutput("estN", width = 4),
-               valueBoxOutput("probD", width = 4))
+      fluidRow(
+        valueBoxOutput("trueN", width = 4),
+        valueBoxOutput("estN", width = 4),
+        valueBoxOutput("probD", width = 4)
+      )
     )
   ),
   
-  fluidRow(column(12,
-                  plotOutput("sim_hist")))
-  
+  fluidRow(column(
+    12,
+    plotOutput("sim_hist")
+  ))
 )
 
 # Define server logic
@@ -135,7 +141,7 @@ server <- function(input, output, session) {
   # Add frogs when the addBtn is clicked
   observeEvent(input$addBtn, {
     window <- owin(c(0, 5), c(0, 5))
-    ppp_object <- rpoispp(1, win = window)
+    ppp_object <- rpoispp(2, win = window)
     
     x <- ppp_object$x
     y <- ppp_object$y
@@ -169,9 +175,7 @@ server <- function(input, output, session) {
     })
   })
   
-  # create reactive dataframe for capture histories 
-  prob_hist <- reactiveVal({matrix(NA, nrow = 10, ncol = nrow(microphones))})
-
+  
   # Add points when the button is clicked
   observeEvent(input$detBtn, {
     if (is.null(points()) || nrow(points()) == 0) {
@@ -182,23 +186,19 @@ server <- function(input, output, session) {
         easyClose = TRUE
       ))
     } else {
-      
       # Calculate probabilities
-      
-      caphists <- matrix(NA, nrow = nrow(points()), ncol = nrow(microphones))
+      prob_hist <- matrix(NA, nrow = nrow(points()), ncol = nrow(microphones))
       for (i in 1:nrow(microphones)) {
-        caphists[, i] <- calculate_prob_succ(points(), microphones[i, ])
+        prob_hist[, i] <- calculate_prob_succ(points(), microphones[i, ])
       }
       
-      prob_hist(caphists)
       
-      det_ind <- as.data.frame(prob_hist())
+      det_ind <- as.data.frame(prob_hist)
       rownames(det_ind) <- paste("Frog", rownames(det_ind))
       colnames(det_ind) <- paste("M", 1:8)
       det_ind <- det_ind[rowSums(det_ind[, 1:8]) > 0, ]
       
       output$capt_hist <- DT::renderDT({
-        
         det_ind %>%
           DT::datatable(
             rownames = TRUE,
@@ -207,14 +207,14 @@ server <- function(input, output, session) {
             extensions = "Buttons",
             selection = "single",
             options = list(dom = "t", ordering = F)
-          )%>%
-          formatStyle( 0, target= 'row',color = 'black', lineHeight='50%')
+          ) %>%
+          formatStyle(0, target = "row", color = "black", lineHeight = "50%")
       })
       
       
       # Render the plot
       output$plot <- renderPlot({
-        dat <- cbind(points(), prob_hist())
+        dat <- cbind(points(), prob_hist)
         
         det_dat <- dat %>%
           rowwise() %>%
@@ -256,16 +256,15 @@ server <- function(input, output, session) {
       })
       
       output$estN <- shinydashboard::renderValueBox({
-        ave <- 1 - (1 - mean(prob_hist()))^8
+        ave <- 1 - (1 - mean(prob_hist))^8
         Nhat <- nrow(det_ind) / ave
         shinydashboard::valueBox(round(Nhat), "Estimated number of calls")
       })
       
       output$probD <- shinydashboard::renderValueBox({
-        probd <- mean(prob_hist())
-        shinydashboard::valueBox(round(probd,3), "Average probability of detection")
+        probd <- mean(prob_hist)
+        shinydashboard::valueBox(round(probd, 3), "Average probability of detection")
       })
-      
     }
   })
   
@@ -290,6 +289,8 @@ server <- function(input, output, session) {
         )
     })
     
+    output$sim_hist <- renderPlot({NULL})
+    
     output$capt_hist <- DT::renderDT({
       empty_dat <- matrix(nrow = 10, ncol = 8)
       colnames(empty_dat) <- paste0("M", 1:8)
@@ -305,49 +306,71 @@ server <- function(input, output, session) {
     })
     
     output$trueN <- shinydashboard::renderValueBox({
-      shinydashboard::valueBox(NULL,NULL)
+      shinydashboard::valueBox(NULL, NULL)
     })
     
     output$estN <- shinydashboard::renderValueBox({
-      shinydashboard::valueBox(NULL,NULL)
+      shinydashboard::valueBox(NULL, NULL)
     })
     
     output$probD <- shinydashboard::renderValueBox({
-      shinydashboard::valueBox(NULL,NULL)
+      shinydashboard::valueBox(NULL, NULL)
     })
   })
   
-  # Simualtion 
+  # Simualtion
   
-  observeEvent(input$repeatBtn,{
-    simulate_surveys <- function(nsims=1000){
-      
-      nhats <- NULL
-      for(i in 1:nsims){
-        # Calculate probabilities
-        prob_hist <- matrix(NA, nrow = nrow(points()), ncol = nrow(microphones))
-        for (i in 1:nrow(microphones)) {
-          prob_hist[, i] <- calculate_prob_succ(points(), microphones[i, ])
-        }
-        ave <- 1 - (1 - mean(prob_hist))^8
-        est <- nrow(prob_hist[rowSums(prob_hist)>0,]) / ave
-        nhats <- c(nhats,est)
+  observeEvent(input$repeatBtn, {
+    
+    if (is.null(points()) || nrow(points()) == 0) {
+      # Display an error if points are empty
+      showModal(modalDialog(
+        title = "Oops!",
+        "Please add frogs before surveying!",
+        easyClose = TRUE
+      ))
+    } else {
+    showModal(modalDialog("Hold tight, doing 5000 surveys takes a minute 😮‍💨", footer = NULL))
+    simulate_surveys <- function(points, micro, nsims = 1000) {
+      nhats <- rep(0, nsims)
+      for (i in 1:nsims) {
+        # capture histories
+        prob_hist <- sapply(1:nrow(micro), function(j) {
+          calculate_prob_succ(points, micro[j, ])
+        })
+        
+        model <- fit.cr(as.data.frame(prob_hist[rowSums(prob_hist) > 0, ]), model = "M0")
+        nhats[i] <- model$Nhat[1]
       }
       
-      return(list(nhats = nhats, true = nrow(ppp_df)))
+      return(list(nhats = nhats, true = nrow(points())))
     }
     
-    data1000 <- simulate_surveys()
+    data5000 <- suppressWarnings(simulate_surveys(points(), microphones))
     
     output$sim_hist <- renderPlot({
-      ggplot(data.frame(nhats=data1000$nhats),aes(x=nhats))+
-      geom_histogram(bins=10)+
-      geom_vline(xintercept=data1000$true)
+      ggplot(data.frame(nhats = data5000$nhats), aes(x = nhats)) +
+        geom_histogram(binwidth = 5, fill = "#97cba9", colour = "#668ba4") +
+        geom_vline(xintercept = data5000$true) +
+        theme_minimal() +
+        labs(
+          x = "\nAbundance estimates",
+          y = "Frequency\n"
+        ) +
+        theme(
+          axis.text = element_text(size = 15),
+          axis.title = element_text(size = 15)
+        )
     })
-    
+    removeModal()
+    }
   })
 }
 
 # 
 # Run the application
 shinyApp(ui = ui, server = server)
+
+rsconnect::deployApp("/Users/anecloete/Desktop/2023/Dissertation/ASCR_LearnR/CH2_App1",forceUpdate = T)
+
+shinyap

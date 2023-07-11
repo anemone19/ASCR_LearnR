@@ -1,7 +1,12 @@
 ---
 title: "Chapter4"
 output: learnr::tutorial
-runtime: shiny_prerendered
+runtime: shiny
 ---
 
 ## Overview of ASCR
+
+
+```{r,echo=FALSE,out.width="75%", fig.align='center'} 
+knitr::include_graphics("images/detflow.png")
+```

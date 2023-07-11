@@ -5,38 +5,12 @@ runtime: shiny
 ---
 
 
-<!-- ```{r setup, include=FALSE} -->
-<!--  knitr::opts_chunk$set(echo = TRUE) -->
-<!-- ``` -->
+```{r setup1, include=FALSE}
 
-
-```{sass, echo = FALSE}
-$color1: #668BA4
-$color2: #FEFFDF
-div
-  &.learnBox
-    border-color: $color1
-    border-style: solid
-    background-color: rgba(151, 203, 169,.5)
-    width: 100%
-    padding: 0.5em
-    border-radius: 10px
-    margin: 0 auto 
-    strong
-      color: $color1
-      
-      div
-  &.defBox
-    border-color: $color1
-    border-style: solid
-    width: 100%
-    padding: 0.5em
-    border-radius: 5px
-    margin: 0 auto 
-    strong
-      color: black
+# NB if you want to run the chapter on its own, remove the number after setup in the chunk name 
 
 ```
+
 
 ## Introduction 
 

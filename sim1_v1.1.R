@@ -21,7 +21,7 @@ ggplot(microphones, aes(x = x, y = y)) +
 
 # Poisson point process
 
-window <- owin(c(0, 5), c(0, 5))
+window <- owin(c(0, 10), c(0, 10))
 ppp_object <- rpoispp(0.5, win = window)
 
 ppp_df <- as.data.frame(ppp_object)

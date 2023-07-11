@@ -2,8 +2,10 @@
 library(MASS)
 library(tidyverse)
 library(spatstat)
-library(raster)
 library(ggimage)
+library(mt5751a)
+
+
 # Microphone array
 
 # Capture histories
@@ -12,7 +14,6 @@ hazard_halfnormal_detection <- function(sigma, lam0, d) {
   prob <- 1 - exp(-lam0 * exp(-d * (2 * sigma^2)))
   return(prob)
 }
-
 
 calculate_prob_succ <- function(dataframe, detector) {
   # Calculate distance between each point and the detector
@@ -41,49 +42,73 @@ calculate_prob_succ <- function(dataframe, detector) {
     dataframe$det[i] <- rbinom(1, 1, dataframe$prob_succ[i])
   }
   
-  # Remove the distance column
-  dataframe$distance <- NULL
-  
-  # Mutate each element based on the probability using the binomial distribution
-  # dataframe <- dataframe %>%
-  #   mutate(result = rbinom(n(), size=1, prob_succ))
-  
   return(dataframe$det)
 }
 
-simulate_surveys <- function(nsims=1000){
-  # Define the range of x and y
-  x_range <- seq(1, 4, by = 1)
-  y_range <- seq(2, 3, by = 1)
-  
-  # Create the grid of points
-  microphones <- expand.grid(x = x_range, y = y_range)
-  
-  # Poisson point process
-  
-  window <- owin(c(0, 5), c(0, 5))
-  ppp_object <- rpoispp(0.5, win = window)
-  
-  ppp_df <- as.data.frame(ppp_object)
-  
-  nhats <- NULL
+
+# Define the range of x and y
+x_range <- seq(1, 4, by = 1)
+y_range <- seq(2, 3, by = 1)
+
+# Create the grid of points
+microphones <- expand.grid(x = x_range, y = y_range)
+
+# Poisson point process
+set.seed(1000)
+window <- owin(c(0,5), c(0, 5))
+ppp_object <- rpoispp(2, win = window)
+
+ppp_df <- as.data.frame(ppp_object)
+
+calculate_prob_succ(ppp_df, microphones)
+
+
+prob_hist <- sapply(1:nrow(microphones), function(j) {
+  calculate_prob_succ(ppp_df, microphones[j, ])
+})
+
+
+simulate_surveys <- function(points, micro, nsims=1000){
+  nhats <- rep(0, nsims)
   for(i in 1:nsims){
-    # Calculate probabilities
-    prob_hist <- matrix(NA, nrow = nrow(ppp_df), ncol = nrow(microphones))
-    for (i in 1:nrow(microphones)) {
-      prob_hist[, i] <- calculate_prob_succ(ppp_df, microphones[i, ])
-    }
-    ave <- 1 - (1 - mean(prob_hist))^8
-    est <- nrow(prob_hist[rowSums(prob_hist)>0,]) / ave
-    nhats <- c(nhats,est)
+    # capture histories
+    prob_hist <- sapply(1:nrow(micro), function(j) {
+      calculate_prob_succ(points, micro[j, ])
+    })
+    
+    model <- fit.cr(as.data.frame(prob_hist[rowSums(prob_hist)>0,]),
+                    model="M0",
+                    start.p = 0.05)
+    nhats[i] <- model$Nhat[1]
   }
  
-  return(list(nhats = nhats, true = nrow(ppp_df)))
+  return(list(nhats = nhats, true = nrow(ppp_df), probh = prob_hist))
 }
 
+simulate_surveys2 <- function(points, micro){
+ 
+    prob_hist <- sapply(1:nrow(micro), function(j) {
+      calculate_prob_succ(points, micro[j, ]) })
+  
+    model <- fit.cr(as.data.frame(prob_hist[rowSums(prob_hist)>0,]),model="M0")
+  
+  return(nhat = model$Nhat[1])
+}
 
-data1000 <- simulate_surveys()
+data1000 <- simulate_surveys(ppp_df,microphones,nsims=1000)
+
 
 ggplot(data.frame(nhats=data1000$nhats),aes(x=nhats))+
-  geom_histogram(bins=10)+
-  geom_vline(xintercept=data1000$true)
+  geom_histogram(bins=10,fill="#97cba9",colour="#668ba4")+
+  geom_vline(xintercept=data1000$true)+
+  theme_minimal()+
+  labs(
+    x = "\nAbundance estimates",
+    y = "Frequency\n"
+  )
+
+
+
+
+
+

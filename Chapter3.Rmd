@@ -4,4 +4,138 @@ output: learnr::tutorial
 runtime: shiny_prerendered
 ---
 
+```{r setup3, include=FALSE}
+
+# NB if you want to run the chapter on its own, remove the number after setup in the chunk name 
+
+library(shiny)
+library(tidyverse)
+library(shinyWidgets)
+library(shinydashboard)
+
+
+# Detection Functions for Shiny App
+
+# Half-Normal Detection Function
+halfnormal <- function(distance, g0, sigma) {
+  g0 * exp(-distance^2 / 2 * sigma^2)
+}
+
+# Hazard Rate Detection Function
+hazard_rate <- function(distance, g0, sigma, z) {
+  g0 * (1 - exp(-(distance / sigma)^(-z)))
+}
+
+# Exponential Detection Function
+exponential <- function(distance, g0, sigma) {
+  g0 * exp(-distance / sigma)
+}
+
+# Uniform Detection Function
+uniform <- function(distance, g0, sigma) {
+  ifelse(distance <= sigma, g0, 0)
+}
+
+# Hazard Half-Normal Detection Function
+hazard_halfnormal <- function(distance, g0, sigma) {
+  1 - exp(-g0 * exp(-distance * (2 * sigma^2)))
+}
+
+# # Signal Strength Detection Function
+# signal_strength <- function(distance, alpha, beta) {
+#   alpha * exp(-beta * distance)
+# }
+
+# distances for use in plotting
+dists <- seq(0, 100, by = 1)
+
+# Names of detection functions for use in shiny app 
+detfunctions <- c("Halfnormal", "Hazard Rate", "Exponential", "Uniform", "Hazard Halfnormal", "Signal Strength")
+
+```
+
 ## A Brief Introduction to SCR
+
+In the previous section, we saw that detection probability varies due to the spatial relationship between animals and detectors. Traditional mark-recapture analyses overlook this spatial component, leading to inaccurate results which may have serious consequences. So, some real cool statistical ecologists developed a solution in the form of spatially explicit capture-recapture (SECR or SCR) models. Sounds rather fancy but don’t worry, we won’t go into extreme statistical detail. 
+
+SCR models incorporate the detection function we saw previously in the analysis. 
+
+So SCR models have two key components:
+
+1. A model for detection probabilities
+2. A model for density 
+
+We need to know more about these models before running any analysis. 
+
+Lets focus in on the first component. 
+
+The first component describes the relationship between detection probability and distance. The non-spatial model we look at previously would include a detection function that looks like this: 
+
+- flat curve
+
+But we know better and we saw the relationship actually looks something more like this: 
+
+- hazard half normal
+
+```{r, echo=FALSE}
+# Shiny App UI
+
+withMathJax()
+sidebarLayout(
+  sidebarPanel(
+    setSliderColor(rep("#668BA4", 3), c(1, 2)),
+    chooseSliderSkin("Flat"),
+    selectInput("detFunc", "Select Function:",
+      choices = c("Halfnormal", "Hazard Rate", "Exponential", "Uniform", "Hazard Halfnormal", "Signal Strength")
+    ),
+    sliderInput("g0", "Set Value of g0:", min = 0, max = 1, value = 1),
+    sliderInput("sigma", "Set value for \\ \\sigma \\", min = 0, max = 1, value = 0.2),
+    conditionalPanel(
+      condition = "input.detFunc == 'Hazard Rate'",
+      sliderInput("z", "Set value for z", min = 0, max = 1, value = 0.5)
+    )
+  ),
+  mainPanel(
+    plotOutput("functionPlot")
+  )
+)
+```
+
+```{r, context="server",echo=FALSE}
+# Shiny Server 
+output$functionPlot <- renderPlot({
+  x <- seq(-10, 10, length = 100)
+
+  if (input$detFunc == detfunctions[1]) {
+    y <- halfnormal(dists, input$g0, input$sigma)
+  } else if (input$detFunc == detfunctions[2]) {
+    y <- hazard_rate(dists, input$g0, input$sigma, input$z)
+  } else if (input$detFunc == detfunctions[3]) {
+    y <- exponential(dists, input$g0, input$sigma)
+  } else if (input$detFunc == detfunctions[4]) {
+    y <- uniform(dists, input$g0, input$sigma)
+  } else if (input$detFunc == detfunctions[5]) {
+    y <- hazard_halfnormal(dists, input$g0, input$sigma)
+  }
+
+  # Create data frame
+  df <- data.frame(d = dists, y = y)
+
+  # Plot
+  ggplot(df, aes(d, y)) +
+    geom_line(linewidth = 1, colour = "#97CBA9") +
+    labs(title = paste(input$detFunc, "Detection Function")) +
+    xlab("\nDistance") +
+    ylab("Detection probability\n") +
+    ylim(0, 1) +
+    theme_minimal() +
+    theme(
+      axis.title = element_text(size = 15),
+      plot.title = element_text(size = 20)
+    )
+})
+```
+
+The above function is called a hazard half-normal function and is a typical detection function in SCR studies. The function has two values that control its shape, lambd0 and sigma. Play around with their values below to see how they change the shape of the function. 
+
+The hazard-half normal is not the only detection function we could specify. If we think the relationship between p and distance looks a bit differently, we could specify a different detection function. Look at the drop downlist and choose a function to see what it looks like.
