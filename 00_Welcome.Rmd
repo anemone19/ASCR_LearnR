@@ -1,0 +1,78 @@
+---
+title: "ASCR Tutorial"
+output: 
+  learnr::tutorial:
+    progressive: true
+    allow_skip: true
+runtime: shiny_prerendered
+---
+
+```{r setup, include=FALSE}
+
+source("RScripts/Chapter2_Setup.R")
+source("RScripts/Chapter3_Setup.R")
+source("RScripts/Chapter5_Setup")
+
+```
+
+
+```{sass, echo = FALSE}
+$color1: #668BA4
+$color2: #FEFFDF
+div
+  &.learnBox
+    border-color: $color1
+    border-style: solid
+    background-color: rgba(151, 203, 169,.5)
+    width: 100%
+    padding: 0.5em
+    border-radius: 10px
+    margin: 0 auto 
+    strong
+      color: $color1
+      
+      div
+  &.defBox
+    border-color: $color1
+    border-style: solid
+    width: 100%
+    padding: 0.5em
+    border-radius: 5px
+    margin: 0 auto 
+    strong
+      color: black
+
+```
+
+## Welcome! 
+
+- introduction & background
+- purpose & intended audience 
+- link to report
+
+- tutorial structure and outline 
+- words in blue and bold have been defined in the definitions 
+- instructions on how to download package 
+
+```{r, child='01_INTRO.Rmd'}
+```
+
+```{r, child='02_PROBD.Rmd'}
+```
+
+```{r, child='03_SCR.Rmd'}
+```
+
+```{r, child='04_ASCR.Rmd'}
+```
+
+```{r, child='05_ASCRCD.Rmd'}
+```
+
+```{r, child='06_ASCRCD_Supp.Rmd'}
+```
+
+```{r, child='07_Definitions.Rmd'}
+```
+
+
