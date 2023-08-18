@@ -98,22 +98,22 @@ ggplot(temppop,aes(x=x,y=y)) +
 ## Inhomogenous density --------------------------------------------------------------------------
 
 # using simulated datasets from acre package, specifically "ihd"
-acre::ihd
-
-# mask 
-ihdens_mask<-create.mask(ihd$traps,buffer=30)
-
-# Data setup 
-ihdens_data <- read.acre(captures = ihd$capt, 
-                         traps = ihd$traps,
-                         control_create_mask = list(buffer = 30),
-                         loc_cov = ihd$loc_cov)
+# acre::ihd
+# 
+# # mask
+# ihdens_mask<-create.mask(ihd$traps,buffer=30)
+# 
+# # Data setup
+# ihdens_data <- read.acre(captures = ihd$capt,
+#                          traps = ihd$traps,
+#                          control_create_mask = list(buffer = 30),
+#                          loc_cov = ihd$loc_cov)
 
 # function that fits acre model for ihd dataset given different density model formulas
-# acre_data is the data object created by read.acre above 
+# acre_data is the data object created by read.acre above
 # dens_mod is a model formula that has to start with ~ e.g. "~x+y"
 
-# section is commented out so not to run everytime tutorial loads 
+# section is commented out so not to run everytime tutorial loads
 
 # ihd_data_plot <- function(acre_data,dens_mod,save.fit=FALSE){
 # 
@@ -137,7 +137,10 @@ ihdens_data <- read.acre(captures = ihd$capt,
 # quad_mod <- ihd_data_plot(ihdens_data,"~x+y+x^2+y^2+x*y",save.fit = TRUE) # quadratic trend
 # noise_mod <- ihd_data_plot(ihdens_data,"~noise",save.fit = TRUE) # continuous covariate noise
 # forest_mod <- ihd_data_plot(ihdens_data,"~forest_volumn",save.fit = TRUE) # forest volume categorical covariate
-# 
-# save(linear_mod,quad_mod,noise_mod,forest_mod, file = "data/dens_model.RData" )
+
+
+# save(linear_mod,quad_mod,noise_mod,forest_mod, 
+#      temppop,trapdf,
+#      file = "data/dens_model.RData" )
 
 load("data/dens_model.RData")

@@ -8,7 +8,7 @@ runtime: shiny_prerendered
 # NB if you want to run the chapter on its own, remove the number after setup in the chunk name
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
-source("RScripts/Chapter3_Setup.R")
+# source("RScripts/Chapter3_Setup.R")
 
 ```
 

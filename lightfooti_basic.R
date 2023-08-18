@@ -154,15 +154,15 @@ summary(model1)
 
 # variance 
 
-model1_boot <- boot.acre(model1, N = 10) 
-
-model1_boot$coefficients
-
-summary(model1_boot)
-
-acre::stdEr(model1_boot) # standard errors
-
-confint(model1_boot,type="fitted")
+# model1_boot <- boot.acre(model1, N = 10) 
+# 
+# model1_boot$coefficients
+# 
+# summary(model1_boot)
+# 
+# acre::stdEr(model1_boot) # standard errors
+# 
+# confint(model1_boot,type="fitted")
 
 # detection function
 
@@ -205,12 +205,12 @@ model2 <- fit.acre(
 
 summary(model2)
 
-# variance 
-
-model2_boot <- boot.acre(model1, N = 10) # bootstrapping
-
-acre::stdEr(model2_boot) # standard errors
-confint(model2_boot) # confidence intervals 
+# # variance 
+# 
+# model2_boot <- boot.acre(model1, N = 10) # bootstrapping
+# 
+# acre::stdEr(model2_boot) # standard errors
+# confint(model2_boot) # confidence intervals 
 
 # detection function
 

@@ -7,7 +7,7 @@ runtime: shiny_prerendered
 ```{r setup5, include=FALSE}
 # NB if you want to run the chapter on its own, remove the number after setup in the chunk name
 
-source("Chapter5_Setup.R")
+# source("RScripts/Chapter5_Setup.R")
 
 ```
 
@@ -79,7 +79,7 @@ We are using the package ggplot to visualize our data. We supply the dataframe t
 
 The third thing we have to supply is the habitat mask. We create a mask with the function $\texttt{create.mask()}$ which requires, at minimum, the traps dataframe and a buffer distance. 
 
-### Quick diversion on the buffer distance 
+#### Quick diversion on the buffer distance 
 
 SCR theory has shown that the buffer distance isn't super crucial as long as it is sufficiently wide to ensure that animals located at the periphery have an extremely low probability of being detected. 
 
