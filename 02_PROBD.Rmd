@@ -11,11 +11,11 @@ knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 # source("RScripts/Chapter2_Setup.R")
 ```
 
-## Probability of detection
+## 2 Probability of detection
 
 In this tutorial, we assume that our wildlife population is closed. This means that during our survey, we assume that no new individuals are joining the population (births or immigration) or individuals leaving the population (deaths or emigration). In other words, we assume geographic and demographic closure. The alternative assumption is that the population is open, requiring a different analysis that has not yet been developed for acoustic surveys.
 
-Regardless of our assumption, a key task is to estimate the [probability of detection]{style="color:#668BA4;font-weight:bold;"} - the probability that any individual in the population gets detected at all. This is because most surveys of wild populations are inherently **imperfect**. When estimating animal abundance, the probability of detection helps us know how many animals we did not detect. Knowing the probability of being in our sample enables us to determine the probability of NOT being in our sample. By estimating this probability, we take into account [ imperfect detection]{style="color:#668BA4;font-weight:bold;"} in our analysis, which would otherwise have produced inaccurate results.
+Regardless of our assumption, a key task is to estimate the [probability of detection]{style="color:#668BA4;font-weight:bold;"} - the probability that any individual in the population gets detected at all. This is because most surveys of wild populations are inherently **imperfect**. When estimating animal abundance, the probability of detection helps us know how many animals we did not detect. Knowing the probability of being in our sample enables us to determine the probability of NOT being in our sample. By estimating this probability, we take into account [imperfect detection]{style="color:#668BA4;font-weight:bold;"} in our analysis, which would otherwise have produced inaccurate results.
 
 Let's have a look at a traditional capture-recapture analysis with an example.
 

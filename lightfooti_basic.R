@@ -69,11 +69,36 @@ captures <- captures %>%
 length(unique(captures$ID)) # 225 CALLS 
 
 # trap dataframe for tutorial
-traps <- as.data.frame(lightfooti$traps)
+traps <- as.data.frame(lightfooti_data$traps)
 
 # Introduction to package acre -----------------------------------------------------------
 
-### Read data function -------------------------------------------------------------------
+# Buffer distance ----------------------------------------------------------------------
+
+library(secr)
+
+# trap dataframe 
+traps$trap <- rownames(traps) # add trap column with trap ids 
+
+secr_traps <- read.traps(data = traps, # trap layout data
+                         trapID = "trap", # name of ID column
+                         detector = "proximity") # detector type
+
+secr_capthist <- make.capthist(captures = captures,
+                               traps = secr_traps,
+                               fmt = "trapID")
+
+# quick and biased sigma
+
+initialsigma <- RPSV(secr_capthist, CC = TRUE)
+
+bufferdist <- 4 * initialsigma
+
+# using suggest.buffer()
+
+suggest.buffer(secr_capthist, detectfn = "hazard halfnormal") 
+
+### Pre-acre -------------------------------------------------------------------
 
 # look at function help file 
 ?read.acre()
@@ -111,7 +136,7 @@ mask <- create.mask(traps, 15)
 
 # create covariate data frame using mask coordinates 
 
-cov_dat <- data.frame(x = mask[,1], y = mask[,2], spat_trend = "yes")
+cov_dat <- data.frame(x = lightfooti$mask[,1], y = lightfooti$mask[,2], spat_trend = "yes")
 
 # plot mask and detectors
 
@@ -127,24 +152,25 @@ ggplot() +
 # can pass buffer distance to the argument control_create_mask in the read.acre() and it will
 # create a mask for you 
 
+# per individual per 25 seconds to per minute 
+call_rates = (lightfooti$freqs/25)*60
+
 # create data object for model fitting 
+
+### ACRE Formatting ---------------------------------------------------------------------------
 
 lightfooti_data <- read.acre(
   captures = captures,
   traps = traps,
-  mask = mask, 
-  loc_cov = cov_dat,
-  cue.rates = call_rates
+  control_create_mask = list(buffer=14)
 )
-
-class(lightf_data)
 
 ### Model fitting ---------------------------------------------------------------------------
 
 model1 <- fit.acre(
   dat = lightfooti_data,
   detfn = "hn",
-  fix = list(g0 = 1)
+  fix = list(g0=1)
 )
 
 ### Inference ---------------------------------------------------------------------------
@@ -154,15 +180,15 @@ summary(model1)
 
 # variance 
 
-# model1_boot <- boot.acre(model1, N = 10) 
-# 
-# model1_boot$coefficients
-# 
-# summary(model1_boot)
-# 
-# acre::stdEr(model1_boot) # standard errors
-# 
-# confint(model1_boot,type="fitted")
+model1_boot <- boot.acre(model1, N = 10)
+
+model1_boot$coefficients
+
+summary(model1_boot)
+
+acre::stdEr(model1_boot) # standard errors
+
+confint(model1_boot,type="fitted")
 
 # detection function
 
@@ -174,8 +200,12 @@ show_Dsurf(model1) # constant like we specified
 
 # animal density 
 
-# first extract call rates converted to number of calls per second 
-call_rates <- lightfooti$freqs/1000
+# average call rate
+ave_call_rate <- mean(call_rates)
+
+# convert to animal density 
+
+model1$coefficients[7]/ave_call_rate
 
 # SPATIAL TREND ------------------------------------------------------------------------
 
@@ -185,8 +215,7 @@ lightfooti_data2 <- read.acre(
   captures = captures,
   traps = traps,
   mask = mask,
-  loc_cov = cov_dat,
-  cue.rates = call_rates
+  loc_cov = cov_dat
 )
 
 ## Model Fitting ------------------------------------------------------------------------
@@ -198,19 +227,18 @@ model2 <- fit.acre(
   fix = list(g0 = 1)
 )
 
-
 ## Inference ---------------------------------------------------------------------------
 
 # model output 
 
 summary(model2)
 
-# # variance 
-# 
-# model2_boot <- boot.acre(model1, N = 10) # bootstrapping
-# 
-# acre::stdEr(model2_boot) # standard errors
-# confint(model2_boot) # confidence intervals 
+# variance
+
+model2_boot <- boot.acre(model1, N = 10) # bootstrapping
+
+acre::stdEr(model2_boot) # standard errors
+confint(model2_boot) # confidence intervals
 
 # detection function
 
@@ -220,45 +248,16 @@ show_detfn(model2)
 
 show_Dsurf(model2) # constant like we specified 
 
-# Buffer distance ----------------------------------------------------------------------
-
-library(secr)
-
-# trap dataframe 
-traps$trap <- rownames(traps) # add trap column with trap ids 
-
-secr_traps <- read.traps(data = traps, # trap layout data
-                         trapID = "trap", # name of ID column
-                         detector = "proximity") # detector type
-
-secr_capthist <- make.capthist(captures = captures,
-                      traps = secr_traps,
-                      fmt = "trapID")
-
-# quick and biased sigma
-
-initialsigma <- RPSV(secr_capthist, CC = TRUE)
-
-bufferdist <- 4 * initialsigma
-
-# using suggest.buffer()
-
-suggest.buffer(secr_capthist, detectfn = "hazard halfnormal") 
-
 
 # save data as single RData object for tutorial
-save(captures,traps,mask,lightf_data,
-     call_rates,model1,model1_boot,
+save(captures,traps,mask,lightfooti_data,
+     call_rates,ave_call_rate,model1,model1_boot,
+     lightfooti_data2,
      model2, model2_boot, 
      file="data/chapter5_data.RData")
 
 
-# List of objects in lightfooti_data.Rdata
-# lightfooti_captures
-# lightfooti_traps
-# mask
-# lightf_data (read.acre data object)
-# model1 fit
+
 
 
 

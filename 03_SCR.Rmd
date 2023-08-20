@@ -12,7 +12,7 @@ knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
 ```
 
-## Introduction to SCR
+## 3 Introduction to SCR {#ch3}
 
 In the previous section, we saw that detection probability varies due to the spatial relationship (i.e. distance) between animals and detectors. Traditional mark-recapture analyses overlook this spatial component by assuming a constant probability of detection regardless of the distance between the animal and detector. This leads to inaccurate results, which may have serious consequences. So, some really cool statistical ecologists developed a solution in the form of [spatially explicit capture-recapture]{style="color:#668BA4;font-weight:bold;"} (SECR or SCR). Sounds very fancy but don't worry, it's relatively straightforward, and we won't go into much (if any) statistical detail.
 
@@ -150,7 +150,7 @@ output$detFuncPlot <- renderPlot({
 })
 ```
 
-There are many other detection functions as well! If we think the relationship between detection probability and distance looks slightly different, we could specify a different detection function. For example, the hazard rate function includes an additional parameter, $z$, that .... You can explore other detection functions by selecting from the dropdown list above.
+There are many other detection functions as well! If we think the relationship between detection probability and distance looks slightly different, we could specify a different detection function. For example, the hazard rate function includes an additional parameter which has an additional parameter, $z$. You can explore other detection functions by selecting from the dropdown list above.
 
 We no longer assume a constant probability of detection; we now have a mathematical model that describes the probability of detection as a function of the distance between detectors and animal locations. We tell the model what we think the shape of our detection function should look like (i.e. halfnormal, hazard rate etc.) and then the model will estimate the parameters of the detection function based on the data we collected. You might be thinking, how do I choose the correct detection function? Well, statisticians have shown that, for the most part, it doesn't really matter which shape you choose! As long as the shape is reasonable and aligns with what you know about your detectors and target species.
 
@@ -265,9 +265,9 @@ output$constantDensityPlot <- renderPlot({
 
 Alternatively, we can specify a model that describes density as varying unequally across space. Animal locations could vary due to, for example, the spatial arrangement of suitable habitats such as vegetation type or leaf litter or a spatial trend across the landscape. In the latter case, we could specify a linear trend or even a quadratic trend in density by modelling density as a function of the x and y coordinates of the specified mask.
 
-Landscape features can be anything we think is an essential determinant of where our target species might be, including things such as the level of noise coming from human settlements or activities. We can then model density as a function of such variables, allowing density to change throughout the survey region accordingly. These features we call habitat covariates, and for every mask point, we have to have a value for the chosen habitat covariate. There are different ways of obtaining data for every mask point, we could have measured at every point, but this is likely unrealistic for very fine and large habitat masks. Alternatively, given a few measured points across the survey region, we could predict the rest using another statistical model (more on this in later chapters).
+Landscape features can be anything we think is an essential determinant of where our target species might be, including things such as the distance to or level of noise coming from human settlements or activities. We can then model density as a function of such variables, allowing density to change throughout the survey region accordingly. These features we call habitat covariates, and for every mask point, we have to have a value for the chosen habitat covariate. There are different ways of obtaining data for every mask point, we could have measured at every point, but this is likely unrealistic for very fine and large habitat masks. Alternatively, given a few measured points across the survey region, we could predict the rest using another statistical model (more on this in later chapters).
 
-Habitat covariates can be categorical, such as the forest volume covariate below, consisting of low, median and high levels. In that case, we have three model parameters related to three density estimates, one for each level of forest volume. They can also be numerical, such as noise. Then we get a continuous density surface with a predicted density value for every mask point. Under this model, we have two parameters, a baseline density when noise is at zero and a parameter describing the effect of noise on density. We use the effect parameter to predict the surface you see below.
+Habitat covariates can be categorical, such as the forest volume covariate below, consisting of low, median and high levels. In that case, we have three model parameters related to three density estimates, one for each level of forest volume. They can also be numerical, such as noise from anthropogenic activities measured in decibels. Then we get a continuous density surface with a predicted density value for every mask point. Under this model, we have two parameters, a baseline density when noise is at zero and a parameter describing the effect of noise on density. We use the effect parameter to predict the surface you see below.
 
 ```{r ,echo=FALSE}
 fluidPage(
@@ -331,6 +331,7 @@ output$noisePlot <- renderPlot({
     geom_contour(color = "grey", alpha = 0.5) +
     geom_text_contour(aes(z = Noise), stroke = 0.1, colour = "grey") +
     coord_equal() +
+    ggtitle("Level of noise from human activities") +
     scale_fill_distiller(palette = "Spectral") +
     theme_bw()
 })
@@ -342,6 +343,7 @@ output$noiseDensityPlot <- renderPlot({
     geom_contour(color = "grey", alpha = 0.5) +
     geom_text_contour(aes(z = Density), stroke = 0.1, colour = "grey") +
     coord_equal() +
+    ggtitle("Predicted density surface (D=~noise)") +
     scale_fill_viridis() +
     theme_bw()
 })
@@ -350,8 +352,8 @@ output$forestPlot <- renderPlot({
   ggplot(forest_mod$pred_data) +
     aes(x = X, y = Y, z = Density, fill = Density) +
     geom_tile() +
-    geom_contour(color = "grey", alpha = 0.5) +
-    geom_text_contour(aes(z = Density), stroke = 0.1, colour = "grey") +
+    # geom_contour(color = "grey", alpha = 0.5) +
+    # geom_text_contour(aes(z = Density), stroke = 0.1, colour = "grey") +
     coord_equal() +
     scale_fill_viridis() +
     theme_bw()

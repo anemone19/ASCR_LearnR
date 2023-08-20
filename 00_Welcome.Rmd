@@ -46,13 +46,100 @@ div
 
 ## Welcome! 
 
-- introduction & background
-- purpose & intended audience 
-- link to report
+**IN DEVELOPMENT**
 
-- tutorial structure and outline 
-- words in blue and bold have been defined in the definitions 
-- instructions on how to download package 
+Step into the world of acoustic spatial capture-recapture (aSCR) with this <a href="https://rstudio.github.io/learnr/" target="_blank"> learnr </a> tutorial. My name is Ané Cloete, and I'm excited to share this tutorial with you, which I developed as part of my Master's dissertation at the University of St Andrews in Scotland. 
+
+Acoustic SCR has emerged as a fresh and promising approach in statistical ecology. Despite its potential, the pace of its integration into the field has been relatively slow. I believe one key reason is the limited availability of accessible educational resources. This tutorial aims to bridge that gap by providing an educational platform that simplifies the aSCR methodology for practitioners without an extensive statistical background. 
+
+### Who are you? 
+
+This tutorial is tailor-made for practitioners in the field of ecology or anyone eager to embark on a journey into the aSCR methodology and its implementation using R. Unlike some dry academic lectures, you won't find any bewildering terms like "likelihood" or "probability distribution function" here. We're all about clarity and simplicity. 
+
+It's good to have a grasp of some basic statistical concepts like samples, estimates, standard errors, and confidence intervals. If these concepts are slightly hazy, fear not— I've sprinkled concise explanations throughout the tutorial in the definitions list to keep you on track. But a little refresher wouldn't hurt, so take a peek at the resources I've listed below.
+
+Furthermore, a bit of familiarity with R will come in handy. You don't need to be an R maestro, but a modest understanding will ensure a smoother experience. If you're new to R, no worries— there are links to some excellent introductory resources to get you started. 
+
+Lastly, I'd like to re-emphasize that this is an introductory course. If you're seeking an in-depth explanation of aSCR model formulations and underlying assumptions, you won't find it here. However, it's worth noting that I envision a future chapter that delves into these intricate concepts and attempts to explain them simplistically, potentially as an advanced extension of this tutorial. While that's a potential endeavor on the horizon, the primary objective of this tutorial remains to provide you with a non-statistical introduction to the aSCR methodology and its practical implementation using R. 
+
+### How to use this tutorial 
+
+#### Chapter outline and structure 
+
+There are five main chapters and a list of definitions at the end. Each chapter builds upon the previous, you can skip chapters if you want but 
+
+
+Each chapter concludes with a box containing a summary of the key points taught in the chapter. It will look something like this: 
+
+::: learnBox
+**Summary:**
+
+- Key point
+
+- Key point
+
+:::
+
+These are the key concepts and points to understand before moving on the next chapter. At the end of Chapter 3 (Introduction to SCR) there is an easy and quick quiz you can take to check whether you understand some of the crucial aspects so far. You don't have to do the quiz to continue to the next chapters :)
+
+#### Shiny apps 
+
+Throughout the tutorial there are some interactive graphs and environments which will (hopefully) help you to engage with the material and also, its just fun. Each interactive environment was created with <a href="https://shiny.posit.co/" target="_blank"> Shiny </a> (a very cool package that allows R coders to create web applications) and how to use them will be explained in the relevant chapter.
+
+#### The acre package 
+
+Nowhere in the tutorial are you required to run your own code on your own system. This is what's so neat about learnr tutorials! However, if you want to follow along with the R analysis presented in Chapter 5, you have to install the following packages: 
+
+- acre
+- ascr
+- secr 
+- tidyverse 
+
+The last two packages you can install with base R, i.e. install.packages("pakage_name"). Both the acoustic SCR packages, acre and ascr, require you to install them from github with the package devtools. Here is R code you can use to install the packages:
+
+```{r pack,eval=FALSE}
+
+install.packages(c("tidyverse","secr","devtools"))
+
+library(tidyverse)
+library(secr)
+library(devtools)
+
+install_github("b-steve/ascr")
+install_github("b-steve/acre")
+
+library(acre)
+library(ascr)
+
+```
+
+The main package for implementing aSCR models is the acre package, but another aSCR package, ascr, contains the data we use in Chapters 5 and 6, so you'll need to install it too. We never fit any models with the ascr package, if you'd like to do that you will have to install additional things on your computer and you can find instrctions on how to that on the package github repository, <a href="https://github.com/b-steve/ascr" target="_blank"> here </a>. 
+
+
+### Resources 
+
+#### Introductory R resources and other R resources
+- https://www.w3schools.com/r/r_syntax.asp 
+- https://cran.r-project.org/doc/manuals/R-intro.pdf
+- https://www.youtube.com/watch?v=_V8eKsto3Ug
+- Tidyverse https://r4ds.hadley.nz/
+- Shiny https://mastering-shiny.org/
+
+#### Introductory Statistics resources
+
+- https://courses.lumenlearning.com/introstats1/ modules 1, 8, 12 and 14 
+- https://ecampusontario.pressbooks.pub/introstats/ sections 1, 7, 12, 13 
+- https://www.youtube.com/watch?v=kyjlxsLW1Is&t=1669s crash course 
+
+#### SCR Resources 
+- https://kevintshoemaker.github.io/NRES-746/SCR.html 
+- https://youtu.be/yRRDi07FtPg oSCR 
+- This is a great book for SCR, but it's not freely available. https://shop.elsevier.com/books/spatial-capture-recapture/royle/978-0-12-405939-9
+
+### The full thesis 
+
+The tutorial is 50% of my portfolio dissertation. The rest consisted of an academically focused report, a reflective essay and presentation. If you like, you can access the report and reflective essay by ... 
+
 
 ```{r, child='01_INTRO.Rmd'}
 ```
