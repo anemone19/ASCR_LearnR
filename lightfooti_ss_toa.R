@@ -14,7 +14,7 @@ time_of_arrival_mat <- lightfooti$capt$toa
 # Convert matrix to a single numeric vector excluding zeros
 signal_strength <- signal_strength_mat[signal_strength_mat != 0]
 time_of_arrival <- time_of_arrival_mat[time_of_arrival_mat != 0]
-time_of_arrival <- time_of_arrival / 1000 # convert to seconds
+time_of_arrival <- time_of_arrival / 1000 
 
 # add to captures data frame
 captures_ss_toa <- captures
@@ -27,8 +27,11 @@ captures_ss_toa$toa <- time_of_arrival
 lightf_ss_toa_data <- read.acre(
   captures = captures_ss_toa,
   traps = traps,
-  mask = lightfooti$mask
+  control_create_mask = list(buffer=14),
+  cue.rates = lightfooti$freqs/25,
+  survey.length = 25
 )
+
 
 # MODEL FITTING -------------------------------------------------------------------------
 

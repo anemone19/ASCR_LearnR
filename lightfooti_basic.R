@@ -78,9 +78,10 @@ traps <- as.data.frame(lightfooti_data$traps)
 library(secr)
 
 # trap dataframe 
-traps$trap <- rownames(traps) # add trap column with trap ids 
+traps2 <- traps
+traps2$trap <- rownames(traps) # add trap column with trap ids 
 
-secr_traps <- read.traps(data = traps, # trap layout data
+secr_traps <- read.traps(data = traps2, # trap layout data
                          trapID = "trap", # name of ID column
                          detector = "proximity") # detector type
 
@@ -152,12 +153,16 @@ ggplot() +
 # can pass buffer distance to the argument control_create_mask in the read.acre() and it will
 # create a mask for you 
 
-# per individual per 25 seconds to per minute 
-call_rates = (lightfooti$freqs/25)*60
+# per individual per 25 seconds to per second
+call_rates <- lightfooti$freqs
 
 # create data object for model fitting 
 
 ### ACRE Formatting ---------------------------------------------------------------------------
+
+# no survey length specified, survey.length = 1 -> density per length of survey, i.e. per 25 seconds
+# survey.length = 25 (25 seconds) -> density per second 
+# survey.length = 25/60 (0.4167 minutes) -> density per minute 
 
 lightfooti_data <- read.acre(
   captures = captures,
@@ -180,7 +185,7 @@ summary(model1)
 
 # variance 
 
-model1_boot <- boot.acre(model1, N = 10)
+model1_boot <- boot.acre(model1, N = 500)
 
 model1_boot$coefficients
 
@@ -205,7 +210,7 @@ ave_call_rate <- mean(call_rates)
 
 # convert to animal density 
 
-model1$coefficients[7]/ave_call_rate
+model1$coefficients[5]/ave_call_rate
 
 # SPATIAL TREND ------------------------------------------------------------------------
 
@@ -215,7 +220,9 @@ lightfooti_data2 <- read.acre(
   captures = captures,
   traps = traps,
   mask = mask,
-  loc_cov = cov_dat
+  loc_cov = cov_dat,
+  cue.rates = call_rates,
+  survey.length = 25
 )
 
 ## Model Fitting ------------------------------------------------------------------------
@@ -235,7 +242,7 @@ summary(model2)
 
 # variance
 
-model2_boot <- boot.acre(model1, N = 10) # bootstrapping
+model2_boot <- boot.acre(model1, N = 500) # bootstrapping
 
 acre::stdEr(model2_boot) # standard errors
 confint(model2_boot) # confidence intervals

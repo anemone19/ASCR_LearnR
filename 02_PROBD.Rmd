@@ -5,15 +5,15 @@ runtime: shiny_prerendered
 ---
 
 ```{r setup2, include=FALSE}
-# NB if you want to run the chapter on its own, remove the number after setup in the chunk name
+# NB if you want to run the Chapter on its own, remove the number after setup in the chunk name and uncomment code below 
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
-# source("RScripts/Chapter2_Setup.R")
+#source("RScripts/Chapter2_Setup.R")
 ```
 
 ## 2 Probability of detection
 
-In this tutorial, we assume that our wildlife population is closed. This means that during our survey, we assume that no new individuals are joining the population (births or immigration) or individuals leaving the population (deaths or emigration). In other words, we assume geographic and demographic closure. The alternative assumption is that the population is open, requiring a different analysis that has not yet been developed for acoustic surveys.
+In this tutorial, we assume that our wildlife population is closed. This means that during our survey, we assume that no new individuals are joining the population (births or immigration) or individuals leaving the population (deaths or emigration). In other words, we assume demographic and geographic closure. The alternative assumption is that the population is open allowing for such changes in the population, but this requires a different type of analysis that has not yet been developed for acoustic surveys.
 
 Regardless of our assumption, a key task is to estimate the [probability of detection]{style="color:#668BA4;font-weight:bold;"} - the probability that any individual in the population gets detected at all. This is because most surveys of wild populations are inherently **imperfect**. When estimating animal abundance, the probability of detection helps us know how many animals we did not detect. Knowing the probability of being in our sample enables us to determine the probability of NOT being in our sample. By estimating this probability, we take into account [imperfect detection]{style="color:#668BA4;font-weight:bold;"} in our analysis, which would otherwise have produced inaccurate results.
 
@@ -27,7 +27,7 @@ In the Cape Peninsula of South Africa, this nifty little frog lives in leaf litt
 knitr::include_graphics("images/capemossfrog1.jpeg")
 ```
 
-Let's imagine we want to estimate this frog population's density and place eight microphones throughout a patch of its habitat (see the arrangement below). Let's further imagine that we know the locations of the frogs in that patch (click the "Reveal Frogs" button) and that they each made one call. We may or may not detect (record) each of the calls made, and our microphones can detect multiple calls - click the "Survey!" button to see the resulting data collected.
+Let's imagine we want to estimate this frog population's abundance.  We place eight microphones throughout a patch of its habitat (see the arrangement below). Let's further imagine that we know the locations of the frogs in that patch (click the "Reveal Frogs" button) and that they each made one call. We may or may not detect (record) each of the calls made, and our microphones can detect multiple calls - click the "Survey!" button to see the resulting data collected.
 
 The table below is a data frame consisting of [detection histories]{style="color:#668BA4;font-weight:bold;"}. Each row is a detection history of a call made and indicates at which microphone the call was recorded. An entry equal to "1" means that the call (i.e. row) was recorded at that microphone (i.e. column), and if not, the entry will be a zero. Click on one of the rows to show you the frog location and the microphones that detected the call. Below the detection history data, you'll also see the actual number of frogs ($N$), an estimate of the overall probability of detection ($p^*$) and an estimate of abundance that was calculated as follows:
 
@@ -388,7 +388,7 @@ Play around a bit, conduct multiple surveys on the same set of frogs or survey n
 
 Immediately, it is clear the peak of the histogram is relatively far away from the true value, which tells us that most of the time, we're estimating that a smaller number of frogs exist within this habitat patch. If you're familiar with statistical terminology, we have shown through simulation that our estimate is negatively biased. We don't want this! Remember, our example is on a very arbitrary scale. In reality, concluding that your population is much smaller than what actually exists could lead to misleading decision-making and misplaced conservation efforts.
 
-So, what's happening here? The basic CR model assumes constant detection probability, so essentially, we assume that each call is equally likely to be detected. But is that true? If you have surveyed a few times, you'll see that frogs closer to the microphones are almost always detected, and frogs within short distances to multiple microphones get detected various times! The calls made by those frogs are more likely (i.e. higher probability of detection) to be recorded than those far away. That means our ability to detect calls depends on distance; more specifically detection probability decreases with increasing distance.
+So, what's happening here? The basic CR model assumes constant detection probability, so essentially, we've assume that each call is equally likely to be detected. But is that true? If you have surveyed a few times, you'll see that frogs closer to the microphones are almost always detected, and frogs within short distances to multiple microphones get detected various times! The calls made by those frogs are more likely (i.e. higher probability of detection) to be recorded than those far away. That means our ability to detect calls depends on distance; more specifically detection probability decreases with increasing distance.
 
 ### Distance-dependent detection
 
@@ -426,7 +426,7 @@ br()
 
 We can plot a histogram of these distances and inspect the frequency of frogs located within certain distance intervals (or bins). For example's sake, we'll say that we've measured distance in meters. A distance bin is the span of a bar - the first distance bin is from 0 to 10 meters, the second is from 10 to 20 meters and so forth. If you hover over the bars, the frequency of frogs, i.e. how many frogs are within that distance bin, is shown.
 
-One frog is in our first distance bin (0 to 10 meters), five in the second, 12 in the third and so forth. As is, it's not an extremely interesting graph, but if we add the amount of frogs we detected within each distance bin (Click 'Add detections'), it starts to become a bit more informative.
+One frogs is in our first distance bin (0 to 10 meters), five in the second, twelve in the third and so forth. As is, it's not an extremely interesting graph, but if we add the amount of frogs we detected within each distance bin (Click 'Add detections'), it starts to become a bit more informative.
 
 ```{r UI2, echo=FALSE}
 fluidRow(
@@ -448,49 +448,51 @@ fluidRow(
 ```{r, context="server",echo=FALSE}
 output$histDistPlot <- renderPlotly({
   ggplotly(
-    ggplot(distdf, aes(x = dist)) +
-      geom_histogram(
-        alpha = 0.5, binwidth = 10,
-        center = 5, position = "identity",
-        colour = "#5b7a65",
-        fill = "#97CBA9"
-      ) +
-      labs(
-        x = "\nDistance (m)",
-        y = "Count\n"
-      ) +
-      scale_x_continuous(breaks=seq(0,200,10)) +
-      theme_minimal() +
-      theme(
-        axis.text = element_text(size = 10),
-        axis.title = element_text(size = 10),
-      ),
-    tooltip = c("y")
-  )
+  ggplot(distdf[15:239,], aes(x = dist, group='All',text=after_stat(count))) +
+    geom_histogram(
+      alpha = 0.5, binwidth = 10,
+      center = 5, position = "identity",
+      colour = "#5b7a65",
+      fill = "#97CBA9"
+    ) +
+    labs(
+      x = "\nDistance (m)",
+      y = "Count\n"
+    ) +
+    scale_x_continuous(breaks=seq(0,200,10)) +
+    theme_minimal() +
+    theme(
+      axis.text = element_text(size = 10),
+      axis.title = element_text(size = 10),
+    ),
+  tooltip = c("text")
+)
+
 })
 
 observeEvent(input$allFrogs, {
   output$histDistPlot <- renderPlotly({
     ggplotly(
-      ggplot(distdf, aes(x = dist)) +
-        geom_histogram(
-          alpha = 0.5, binwidth = 10,
-          center = 5, position = "identity",
-          colour = "#5b7a65",
-          fill = "#97CBA9"
-        ) +
-        labs(
-          x = "\nDistance (m)",
-          y = "Count\n"
-        ) +
-        theme_minimal() +
-      scale_x_continuous(breaks=seq(0,200,10)) +
-        theme(
-          axis.text = element_text(size = 10),
-          axis.title = element_text(size = 10),
-        ),
-      tooltip = c("y")
-    )
+  ggplot(distdf[15:239,], aes(x = dist, text = after_stat(count))) +
+    geom_histogram(
+      alpha = 0.5, binwidth = 10,
+      center = 5, position = "identity",
+      colour = "#5b7a65",
+      fill = "#97CBA9"
+    ) +
+    labs(
+      x = "\nDistance (m)",
+      y = "Count\n"
+    ) +
+    scale_x_continuous(breaks=seq(0,200,10)) +
+    theme_minimal() +
+    theme(
+      axis.text = element_text(size = 10),
+      axis.title = element_text(size = 10),
+    ),
+  tooltip = c("tex")
+)
+
   })
 })
 # Add detections
@@ -498,7 +500,7 @@ observeEvent(input$allFrogs, {
 observeEvent(input$addDet, {
   output$histDistPlot <- renderPlotly({
     ggplotly(
-      ggplot(distdf, aes(x = dist, fill = group, colour = group)) +
+      ggplot(distdf, aes(x = dist, fill = group, colour = group, text = after_stat(count))) +
         geom_histogram(
           alpha = 0.5, binwidth = 10,
           center = 5, position = "identity"
@@ -523,7 +525,7 @@ observeEvent(input$addDet, {
           axis.text = element_text(size = 10),
           axis.title = element_text(size = 10),
         ),
-      tooltip = c("y")
+      tooltip = c("text")
     ) %>%
         layout(legend = list(
           orientation = "h"
@@ -534,7 +536,7 @@ observeEvent(input$addDet, {
 observeEvent(input$propBtn, {
   output$histDistPlot <- renderPlotly({
     ggplotly(
-      ggplot(distdf[distdf$dist <= 50, ], aes(x = dist, fill = group, colour = group)) +
+      ggplot(distdf[distdf$dist <= 50, ], aes(x = dist, fill = group, colour = group, text = after_stat(count))) +
         geom_histogram(
           alpha = 0.5, binwidth = 10,
           center = 5, position = "identity"
@@ -559,7 +561,7 @@ observeEvent(input$propBtn, {
           axis.title = element_text(size = 10),
           legend.position = "top"
         ),
-      tooltip = c("y")
+      tooltip = c("text")
     ) %>%
         layout(legend = list(
           orientation = "h"
@@ -569,7 +571,7 @@ observeEvent(input$propBtn, {
   output$propPlot <- renderPlotly({
     ggplotly(
       # Plot the bar plot
-      ggplot(prop, aes(x = Var1, y = Freq)) +
+      ggplot(prop, aes(x = Var1, y = Freq, text = round(Freq,2))) +
         geom_bar(stat = "identity", colour = "#5b7a65", fill = "#97CBA9") +
         labs(x = "\nDistance (m)",
              y = "Probability of detection\n") +
@@ -578,7 +580,7 @@ observeEvent(input$propBtn, {
           axis.text = element_text(size = 10),
           axis.title = element_text(size = 10)
         ),
-      tooltip = c("y")
+      tooltip = c("text")
     )
     
   })

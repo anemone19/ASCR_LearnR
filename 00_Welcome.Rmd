@@ -56,11 +56,11 @@ Acoustic SCR has emerged as a fresh and promising approach in statistical ecolog
 
 This tutorial is tailor-made for practitioners in the field of ecology or anyone eager to embark on a journey into the aSCR methodology and its implementation using R. Unlike some dry academic lectures, you won't find any bewildering terms like "likelihood" or "probability distribution function" here. We're all about clarity and simplicity. 
 
-It's good to have a grasp of some basic statistical concepts like samples, estimates, standard errors, and confidence intervals. If these concepts are slightly hazy, fear not— I've sprinkled concise explanations throughout the tutorial in the definitions list to keep you on track. But a little refresher wouldn't hurt, so take a peek at the resources I've listed below.
+It's good to have a grasp of some basic statistical concepts like samples, estimates, standard errors, and confidence intervals. If these concepts are slightly hazy, fear not— I've sprinkled concise explanations throughout the tutorial and in the definitions list to keep you on track. But a little refresher wouldn't hurt, so take a peek at the resources I've listed below.
 
 Furthermore, a bit of familiarity with R will come in handy. You don't need to be an R maestro, but a modest understanding will ensure a smoother experience. If you're new to R, no worries— there are links to some excellent introductory resources to get you started. 
 
-Lastly, I'd like to re-emphasize that this is an introductory course. If you're seeking an in-depth explanation of aSCR model formulations and underlying assumptions, you won't find it here. However, it's worth noting that I envision a future chapter that delves into these intricate concepts and attempts to explain them simplistically, potentially as an advanced extension of this tutorial. While that's a potential endeavor on the horizon, the primary objective of this tutorial remains to provide you with a non-statistical introduction to the aSCR methodology and its practical implementation using R. 
+Lastly, I'd like to re-emphasize that this is an introductory course. If you're seeking an in-depth explanation of aSCR model formulations and underlying assumptions, you won't find it here. However, it's worth noting that I envision a future chapter that delves into these intricasies and attempts to explain them simplistically, potentially as an advanced extension of this tutorial. While that's a potential endeavor on the horizon, the primary objective of this tutorial remains to provide you with a non-statistical introduction to the aSCR methodology and its practical implementation using R. 
 
 ### How to use this tutorial 
 

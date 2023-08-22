@@ -4,9 +4,15 @@ output: learnr::tutorial
 runtime: shiny_prerendered
 ---
 
+```{r setup4, include=FALSE}
+# NB if you want to run the chapter on its own, remove the number after setup in the chunk name and uncomment the code below 
+
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+```
+
 ## 4 Overview of aSCR
 
-So far, we have investigated distance-dependent detection and briefly looked over the structure of an SCR model in the context of acoustic sampling. When we use an SCR model for acoustic surveys, we refer to it as acoustic spatial capture-recapture or aSCR for short. 
+So far, we have investigated distance-dependent detection and briefly looked over the structure of an SCR model in the context of acoustic sampling. The underlying principle of SCR is to model the spatial distribution of animals using a predefined spatial density model. This model describes the spatial point pattern of animal locations within the survey region. On the other hand, the detection function describes the probability of detecting an animal based on its distance from the detector. By combining these two components with a habitat mask, SCR models estimate density within a defined survey region while accounting for the spatial variation in detection probability. When we use an SCR model for acoustic surveys, we refer to it as acoustic spatial capture-recapture or aSCR for short. 
 
 There is an important distinction to make before we can move on to acoustic data analysis. In the frog example of Chapter 1, we assumed each frog made one call so we could equate a detected call with one individual frog. Rarely does an individual, let alone all individuals in a population, call only once during a survey, and it's not always possible to match calls to individuals. In other words, we can't typically classify multiple detected calls as belonging to one individual. In that case, our density model describes the distribution of <span style="color:#668BA4;font-weight:bold;">call locations</span> and not <span style="color:#668BA4;font-weight:bold;">animal locations</span> as we've described previously. Call locations are simply the location from which a call was made. The aSCR model implemented and the interpretation of the density estimate is different depending on which type of location we are modelling, and that is determined by the <span style="color:#668BA4;font-weight:bold;">detection unit</span> of our study. 
 
@@ -16,16 +22,16 @@ The detection unit is simply the thing we record as having been detected. The de
 knitr::include_graphics("images/detflow1.png")
 ```
 
-The raw data that any acoustic survey collects are audio recordings of the calls produced by the wildlife population. The recordings are then typically processed via a computer program to isolate the calls of the target species. For example, there is an open-source software program called <a href="http://www.pamguard.org/" target="_blank">PAMGAURD</a> that can be used to identify calls of certain species. This cool technology was first made for studying marine mammal sounds, but it has also been used in many studies to identify the calls of the Cape Moss frog's croaks. Automated sound identification procedures, including complex machine learning algorithms and statistical models, are complicated and varied. These are not the focus of this tutorial, but if you'd like to know more about detecting and classifying acoustic signals or just the use of passive acoustics in ecological monitoring, <a href="https://besjournals.onlinelibrary.wiley.com/doi/full/10.1111/2041-210X.13101" target="_blank">this</a> is a cool paper to read. 
+The raw data that any acoustic survey collects are audio recordings of the calls produced by the wildlife population. The recordings are then typically processed via a computer program to isolate the calls of the target species. For example, there is an open-source software program called <a href="http://www.pamguard.org/" target="_blank">PAMGAURD</a> that can be used to identify calls of certain species. This cool technology was first made for studying marine mammal sounds, but it has also been used in studies to identify the calls of the Cape Moss frog's croaks. Automated sound identification procedures, including complex machine learning algorithms and statistical models, are complicated and varied. These are not the focus of this tutorial, but if you'd like to know more about detecting and classifying acoustic signals or just the use of passive acoustics in ecological monitoring, <a href="https://besjournals.onlinelibrary.wiley.com/doi/full/10.1111/2041-210X.13101" target="_blank">this</a> is a cool paper to read. 
 
 The recording devices used in acoustic surveys typically also record other information with audio recordings, called metadata. Two common types of extra information are the strength of the received acoustic signal (i.e. the call) and the time that the call was detected, referred to as <span style="color:#668BA4;font-weight:bold;">signal strength</span> and <span style="color:#668BA4;font-weight:bold;">time of arrival</span> data, respectively. So each isolated call may have an associated signal strength and/or arrival time attached to it. In some situations, estimated distances and
-directions to sound sources may be collected as well. We can include these measurements in our analysis to help our model estimate the likely locations of detected calls and, consequently, improve density estimates. We'll explore this further in the next chapter. 
+directions to sound sources may be collected as well. We can include these measurements in our analysis to help our model estimate the likely locations of detected calls and, consequently, improve density estimates. We'll explore this further in the Chapter six. 
 
 ### Calling Density 
 
 At this point, the data can be analysed on the call level (i.e. with a call as the detection unit) with an aSCR model that models call locations. Consequently, our density estimate is <span style="color:#668BA4;font-weight:bold;">calling density</span> - the number of calls per unit area per unit time. We call this model aSCR-CD for short, where CD stands for calling density. 
 
-If we want to convert calling density to animal density, we have to know the average call rate of our target species. We could use the average call rate from previous studies or independently collect data to estimate the call rate ourselves. 
+If we want to convert calling density to animal density, we have to know the average call rate of our target species. We could use the average call rate from previous studies or independently collect data to estimate the call rate ourselves. It is important to note that the animal density we estimate is of calling animals - that is, we estimate the number of calling animals per unit area. For example, only the males of the Cape Moss frog species call and so we estimate calling male animal density. This is the case for all the aSCR models! 
 
 ```{r,echo=FALSE,out.width="100%", fig.align='center'} 
 knitr::include_graphics("images/detflow2.png")
@@ -33,7 +39,7 @@ knitr::include_graphics("images/detflow2.png")
 
 ### Animal (or Group) Density 
 
-Identities of animals are never directly observed in acoustic surveys - but if we can match detected calls to individual animals or groups of animals, we can model animal or group locations and consequently, estimate <span style="color:#668BA4;font-weight:bold;">animal or group density</span> directly. Hence the model name, ascr-AD/GD. Our detection unit is then an animal or a group of animals, depending on the nature of the target species. 
+Identities of animals are never directly observed in acoustic surveys. If we can match detected calls to individual animals or groups of animals, we can model animal or group locations and consequently, estimate <span style="color:#668BA4;font-weight:bold;">animal or group density</span> directly. Hence the model name, aSCR-AD/GD. Our detection unit is then an animal or a group of animals, depending on the nature of the target species. 
 
 If you're confused about the difference between call and animal locations, this might help: in the aSCR-AD/GD model, we assume that the detection units strictly **do not move** between calls which is another way of saying calls from one animal or group come from the same location. In the aSCR-CD model, we don't make any assumptions about movement between calls, so animals may or may not move between calls. 
 
@@ -43,9 +49,9 @@ Data pre-processing starts as in aSCR-CD; we have to isolate the species' calls 
 knitr::include_graphics("images/detflow3.png")
 ```
 
-This particular aSCR model was developed relatively recently (in 2021), and presently, procedures to distinguish individual animals or groups from acoustic data remain unattainable for most taxa. Even in cases where it is feasible, accomplishing this task demands a lot of hands-on work and may have considerable uncertainty attached to individual identities. Similar to call identification, automated procedures using machine learning techniques are likely to emerge in the near future, and when they do, the aSCR-AD/GD model will be the way to go for density estimation (unless calling density is of specific interest).  
+This particular aSCR model was developed relatively recently by <a href="https://besjournals.onlinelibrary.wiley.com/doi/full/10.1111/2041-210X.13522" target="_blank">Stevenson et al. (2021)</a> , and presently, procedures to identify individual animals from acoustic data remain unattainable for most taxa. Even in cases where it is feasible, accomplishing this task demands a lot of hands-on work and may have considerable uncertainty attached to individual identities. Similar to call identification, automated procedures using machine learning techniques are likely to emerge in the near future, and when they do, the aSCR-AD/GD model will be the way to go for density estimation (unless calling density is of specific interest).  
 
-Under the aSCR-AD/GD and aSCR-CD model, we assume that all individuals or groups called at least once during the survey and either detect those calls or not. Typically, there is no reason to think otherwise, and we can implement a straightforward aSCR survey and the aSCR-AD/GD model as is to estimate animal or group density. 
+Under the aSCR-AD/GD and aSCR-CD model, we assume that all individuals or groups called at least once during the survey and we either detect those calls or not. Typically, there is no reason to think otherwise, and we can implement a straightforward aSCR survey and the aSCR-AD/GD model as is to estimate animal or group density. 
 
 ```{r,echo=FALSE,out.width="100%", fig.align='center'} 
 knitr::include_graphics("images/detflow4.png")
@@ -55,15 +61,15 @@ knitr::include_graphics("images/detflow4.png")
 
 If, however, there are clear reasons why some might definitely not have called even once during our survey occasion, we have to either estimate an additional parameter (similar to the idea of estimating the call rate in aSCR-CD) or adjust our survey structure. 
 
-For example, gibbons (Family Hylobatidae) occur in groups that engage in duetted singing and not all groups will sing daily. The singing frequency between and within groups may also differ due to weather-related changes. A typical survey occasion might be two hours in the morning when gibbons are likely to sing, so this assumption is violated because we know not all groups sing in a single day. You might be thinking that why could we not increase our survey length? Well, it is likely impossible to increase it to such an extent that the assumption holds. In this case, making the survey length a whole day would not solve the problem, likely even two or three days either and then we could also likely be violating the assumption of a closed population. 
+For example, gibbons (Family Hylobatidae) occur in groups that engage in duetted singing and not all groups will sing daily. The singing frequency between and within groups may also differ due to weather-related changes. A typical survey occasion might be two hours in the morning when gibbons are likely to sing, so this assumption is violated because we know not all groups sing in a single day. You might be thinking that why could we not increase our survey length? Well, it is likely impossible to increase it to such an extent that the assumption holds. In this case, making the survey length a whole day would not solve the problem, likely even two or three days either and then we could also be violating the assumption of a closed population. 
 
-For species like this, we have to do a little bit more. We could either stick with a single aSCR survey and then have to estimate independently the proportion of times individuals or groups call. This requires that human surveyors conduct focal follows of detected groups or individuals over additional occasions to estimate the average proportion of times the units vocalise. Alternatively, we can conduct aSCR surveys on multiple occasions, which requires that individuals or groups can be linked across occasions and that enough occasions are chosen to ensure that each individual or group within the survey region is likely to have called at least once. In Chapter 6, we will look at these methods in more detail. 
+For species like this, we have to do a little bit more. We could either stick with a single aSCR survey and then have to estimate independently the proportion of times individuals or groups call. This requires that human surveyors conduct focal follows of detected groups or individuals over additional occasions to estimate the average proportion of times the units vocalise. Alternatively, we can conduct aSCR surveys on multiple occasions, which requires that individuals or groups can be linked across occasions and that enough occasions are chosen to ensure that each individual or group within the survey region is likely to have called at least once. 
 
 ```{r,echo=FALSE,out.width="100%", fig.align='center'} 
 knitr::include_graphics("images/detflow.png")
 ```
 
-Putting all of that together, we can see the three main workflows of acoustic SCR. The upcoming chapters will cover these analyses. We'll introduce the R package we will use and implement a simple aSCR model for call locations (aSCR-CD). Then we will look at aSCR-CD when additional information is included in the analysis. Next, we'll look into implementing the acoustic SCR model (aSCR-AD/GD) when we have scaled our data to the animal or group level and can directly estimate animal or group density (AD/GD). Lastly, we look at the aSCR-AD/GD model when we cannot assume that all individuals or groups will call during a single survey. 
+Putting all of that together, we can see the three main workflows of acoustic SCR. The upcoming chapters will cover these analyses. We'll introduce the R package, $\texttt{acre}$, and implement some basic aSCR model for call locations (aSCR-CD). Then we will look at aSCR-CD when additional information is included in the analysis. Next, we'll look into implementing the acoustic SCR model (aSCR-AD/GD) when we have scaled our data to the animal or group level and can directly estimate animal or group density (AD/GD). Lastly, we look at the aSCR-AD/GD model when we cannot assume that all individuals or groups will call during a single survey. 
 
 ::: learnBox
 **Summary:** 
@@ -83,6 +89,8 @@ Putting all of that together, we can see the three main workflows of acoustic SC
 - Recording devices can record additional information, such as signal strength and time of arrival associated with the recorded calls. 
 
 - Under the aSCR-AD/GD model, we assume that all individuals or groups will call during a single survey; if not we have to adjust our survey structure accordingly. 
+
+- The ultimate estimate of animal density in all aSCR models is that of calling animal density. In other words, we estimate the number of calling individuals per unit area. 
 
 :::
 

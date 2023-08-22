@@ -5,7 +5,8 @@ runtime: shiny_prerendered
 ---
 
 ```{r setup3, include=FALSE}
-# NB if you want to run the chapter on its own, remove the number after setup in the chunk name
+# NB if you want to run the Chapter on its own, remove the number after setup in the chunk name and uncomment the code below 
+
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
 # source("RScripts/Chapter3_Setup.R")
@@ -14,7 +15,7 @@ knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
 ## 3 Introduction to SCR {#ch3}
 
-In the previous section, we saw that detection probability varies due to the spatial relationship (i.e. distance) between animals and detectors. Traditional mark-recapture analyses overlook this spatial component by assuming a constant probability of detection regardless of the distance between the animal and detector. This leads to inaccurate results, which may have serious consequences. So, some really cool statistical ecologists developed a solution in the form of [spatially explicit capture-recapture]{style="color:#668BA4;font-weight:bold;"} (SECR or SCR). Sounds very fancy but don't worry, it's relatively straightforward, and we won't go into much (if any) statistical detail.
+In the previous section, we saw that detection probability varies due to the spatial relationship (i.e. distance) between animals and detectors (here, the recording devices). Traditional mark-recapture analyses overlook this spatial component by assuming a constant probability of detection regardless of the distance between the animal and detector. This leads to inaccurate results, which may have serious consequences. So, some really cool statistical ecologists developed a solution in the form of [spatially explicit capture-recapture]{style="color:#668BA4;font-weight:bold;"} (SECR or SCR). Sounds very fancy but don't worry, it's relatively straightforward, and we won't go into much (if any) statistical detail.
 
 ### Survey structure
 
@@ -34,7 +35,7 @@ Spatial capture-recapture models consist of three key components, two sub-models
 knitr::include_graphics("images/scr_flow4.png")
 ```
 
-The primary purpose of a SCR model is to estimate parameters, specifically density, of our wildlife population. Mathematically, density is defined as the intensity of a [spatial point pattern]{style="color:#668BA4;font-weight:bold;"}. Let's explain these concepts with a simple example. Imagine standing in a field and tossing a handful of marbles onto the ground. The way those marbles land and spread out across the field creates a pattern. This arrangement of marbles on the ground is a spatial point pattern where the points are the marbles. It's all about how things are distributed and spaced out in a certain area, like a snapshot of where things are located in space.
+The primary purpose of a SCR model is to estimate parameters, specifically [density]{style="color:#668BA4;font-weight:bold;"} (the number of animals per unit area), of our wildlife population. Mathematically, density is defined as the intensity of a [spatial point pattern]{style="color:#668BA4;font-weight:bold;"}. Let's explain these concepts with a simple example. Imagine standing in a field and tossing a handful of marbles onto the ground. The way those marbles land and spread out across the field creates a pattern. This arrangement of marbles on the ground is a spatial point pattern where the points are the marbles. It's all about how things are distributed and spaced out in a certain area, like a snapshot of where things are located in space.
 
 Now, think about how crowded the field is with marbles. The intensity of the spatial point pattern refers to how many marbles, on average, you would expect to find in a given area of the field. So, if many marbles are close together, the intensity would be high, indicating a dense pattern. On the other hand, if the marbles are more spread out, the intensity would be lower, indicating a more sparse pattern. Intensity helps us understand the overall "busyness" or concentration of points in the spatial pattern. In this context, the points are the locations of the animals, and the intensity of the point pattern is the density of animals.
 
@@ -42,7 +43,7 @@ When we conduct a survey, we collect a sample of the animals and which animals w
 
 ### Detection function
 
-The first component, the [detection function]{style="color:#668BA4;font-weight:bold;"}, describes this relationship between detection probability and distance. If we were to plot the shape of the detection function of the basic MR model we looked at in the previous chapter, it would look like this:
+The first component, the [detection function]{style="color:#668BA4;font-weight:bold;"}, describes this relationship between detection probability and distance. If we were to plot the shape of the detection function of the basic MR model we looked at in the previous Chapter, it would look like this:
 
 ```{r flatcurve,echo=FALSE,fig.align='center'}
 ggplot(const_p_dat, aes(x = x, y = y)) +
@@ -59,7 +60,7 @@ ggplot(const_p_dat, aes(x = x, y = y)) +
   )
 ```
 
-It is simply a straight line at whatever we estimated our probability of detection to be (here 0.25). But the histogram of distances we built reveals a more realistic shape of a typical detection function. The shape below is called the halfnormal detection function and is often used in SCR models. The function has two parameters, $g_0$ and $\sigma$, which control certain features of the curve.
+It is simply a straight line at whatever we estimated our probability of detection to be (here 0.25). But the histogram of distances we built reveals a more realistic shape of a typical detection function. The shape below is called the half-normal detection function and is often used in SCR models. The function has two parameters, $g_0$ and $\sigma$, which control certain features of the curve.
 
 ```{r detfunc,fig.align='center',echo=FALSE}
 ggplot(hn_detfunc_dat, aes(x = dist, y = probs)) +
@@ -91,7 +92,7 @@ chooseSliderSkin("Flat", color = "#ED5565")
 sidebarLayout(
   sidebarPanel(
     selectInput("detFunc", "Select Function:",
-      choices = c("Halfnormal", "Hazard Rate", "Exponential", "Uniform", "Hazard Halfnormal")
+      choices = c("halfnormal", "Hazard Rate", "Exponential", "Uniform", "Hazard halfnormal")
     ),
     sliderInput("g0", "Set value of g0:", min = 0, max = 1, value = 1),
     sliderInput("sigma", "Set value for σ", min = 0, max = 20, value = 5),
@@ -152,7 +153,7 @@ output$detFuncPlot <- renderPlot({
 
 There are many other detection functions as well! If we think the relationship between detection probability and distance looks slightly different, we could specify a different detection function. For example, the hazard rate function includes an additional parameter which has an additional parameter, $z$. You can explore other detection functions by selecting from the dropdown list above.
 
-We no longer assume a constant probability of detection; we now have a mathematical model that describes the probability of detection as a function of the distance between detectors and animal locations. We tell the model what we think the shape of our detection function should look like (i.e. halfnormal, hazard rate etc.) and then the model will estimate the parameters of the detection function based on the data we collected. You might be thinking, how do I choose the correct detection function? Well, statisticians have shown that, for the most part, it doesn't really matter which shape you choose! As long as the shape is reasonable and aligns with what you know about your detectors and target species.
+We no longer assume a constant probability of detection; we now have a mathematical model that describes the probability of detection as a function of the distance between detectors and animal locations. We tell the model what we think the shape of our detection function should look like (i.e. half-normal, hazard rate etc.) and then the model will estimate the parameters of the detection function based on the data we collected. You might be thinking, how do I choose the correct detection function? Well, statisticians have shown that, for the most part, it doesn't really matter which shape you choose! As long as the shape is reasonable and aligns with what you know about your detectors and target species.
 
 ### Mask
 
@@ -217,7 +218,7 @@ The mask can also be modified to more accurately represent the sampled landscape
 
 The third component models how the animals are distributed throughout space. Here we describe how we think the marbles we threw on the field are spread out - we make assumptions about what the pattern looks like.
 
-The most basic density model consists of only one parameter, density itself, and assumes that animals are spread out evenly across space. In other words, the density of locations is constant throughout our survey region; there is no rhyme or reason to their distribution. Although mostly biologically unrealistic as landscapes are complex and consist of different types of habitats and features, assuming constant density may, in some cases, still provide reliable estimates of average density. For example, assuming constant density over small areas is not unreasonable.
+The most basic density model consists of only one parameter, density itself, and assumes that animals are spread evenly across space. In other words, the density of locations is constant throughout our survey region; there is no rhyme or reason to their distribution. Although mostly biologically unrealistic as landscapes are complex and consist of different habitats and features, assuming constant density may, in some cases, still provide reliable estimates of average density. For example, assuming constant density over small areas is not unreasonable. 
 
 ```{r ,echo=FALSE}
 fluidPage(
@@ -263,11 +264,13 @@ output$constantDensityPlot <- renderPlot({
 })
 ```
 
-Alternatively, we can specify a model that describes density as varying unequally across space. Animal locations could vary due to, for example, the spatial arrangement of suitable habitats such as vegetation type or leaf litter or a spatial trend across the landscape. In the latter case, we could specify a linear trend or even a quadratic trend in density by modelling density as a function of the x and y coordinates of the specified mask.
+Alternatively, we can specify a model that describes density as varying unequally across space. Animal locations could vary due to, for example, the spatial arrangement of suitable habitats such as vegetation type or leaf litter or a spatial trend across the landscape. In the latter case, we could specify a linear trend or even a quadratic trend in density by modelling density as a function of the x and y coordinates of the specified mask. Have a look at the first two graphs below. We're not going to worry too much about the units per now, we're only demonstarting the idea. 
 
-Landscape features can be anything we think is an essential determinant of where our target species might be, including things such as the distance to or level of noise coming from human settlements or activities. We can then model density as a function of such variables, allowing density to change throughout the survey region accordingly. These features we call habitat covariates, and for every mask point, we have to have a value for the chosen habitat covariate. There are different ways of obtaining data for every mask point, we could have measured at every point, but this is likely unrealistic for very fine and large habitat masks. Alternatively, given a few measured points across the survey region, we could predict the rest using another statistical model (more on this in later chapters).
+Landscape features can be anything we think is an essential determinant of where our target species might be, including the distance to or level of noise from human settlements or activities. We can then model density as a function of such variables, allowing density to change throughout the survey region accordingly. These features we call habitat covariates, and for every mask point, we have to have a value for the chosen habitat covariate. There are different ways of obtaining data for every mask point, we could have measured at every point, but this is likely unrealistic for very fine and large habitat masks. Alternatively, given a few measured points across the survey region, we could predict the rest using another statistical model (more on this in later Chapters).
 
-Habitat covariates can be categorical, such as the forest volume covariate below, consisting of low, median and high levels. In that case, we have three model parameters related to three density estimates, one for each level of forest volume. They can also be numerical, such as noise from anthropogenic activities measured in decibels. Then we get a continuous density surface with a predicted density value for every mask point. Under this model, we have two parameters, a baseline density when noise is at zero and a parameter describing the effect of noise on density. We use the effect parameter to predict the surface you see below.
+Habitat covariates, such as the forest volume covariate below, can be categorical, consisting of low, median and high levels. In that case, we have three model parameters related to three density estimates, one for each level of forest volume. The graph shows the regions of high, median and low and the table has the corresponding estimate of density. 
+
+They can also be continuous, such as noise from anthropogenic activities measured in decibels. Then we get a continuous density surface with a predicted density value for every mask point. Under this model, we have two parameters, a baseline density when noise is at zero and a parameter describing the effect of noise on density. We use the effect parameter to predict the surface you see below. It's clear that for regions with high levels of noise, we have low density and vice versa. 
 
 ```{r ,echo=FALSE}
 fluidPage(
@@ -281,16 +284,19 @@ fluidPage(
       fluid = TRUE,
       plotOutput("quadPlot")
     ),
+    tabPanel("Forest cover",
+      fluid = TRUE,
+      fluidRow(
+        column(6,  plotOutput("forestVolPlot")),
+        column(6,  dataTableOutput("forestDT"),style="align: center;")
+      )
+    ),
     tabPanel("Noise",
       fluid = TRUE,
       fluidRow(
         column(6, plotOutput("noisePlot")),
         column(6, plotOutput("noiseDensityPlot"))
       )
-    ),
-    tabPanel("Forest cover",
-      fluid = TRUE,
-      plotOutput("forestPlot")
     )
   )
 )
@@ -348,28 +354,54 @@ output$noiseDensityPlot <- renderPlot({
     theme_bw()
 })
 
+output$forestVolPlot <- renderPlot({
+forest_vol_data <- forest_mod$pred_data %>%
+  mutate(Forest = ifelse(
+    Density == "2015", "Low",
+    ifelse(Density == "4363", "High","Median")
+  ))
+
+ggplot(forest_vol_data) +
+  aes(x = X, y = Y, fill = Forest) +
+  geom_tile() +
+  coord_equal() +
+  scale_fill_manual(values=c("#B2182B","#FEE08B","#3288BD")) +
+  theme_bw()
+
+})
+
+output$forestDT <- DT::renderDT({
+  forest_vol_data %>%
+    select(Forest,Density) %>%
+    distinct(Density,Forest) %>% 
+    arrange(desc(Density)) %>%
+    DT::datatable(
+      class = "cell-border",
+      escape = FALSE,
+      extensions = "Buttons",
+      selection = "single",
+      options = list(dom = "t", ordering = F)
+    )
+})
+
 output$forestPlot <- renderPlot({
-  ggplot(forest_mod$pred_data) +
-    aes(x = X, y = Y, z = Density, fill = Density) +
-    geom_tile() +
-    # geom_contour(color = "grey", alpha = 0.5) +
-    # geom_text_contour(aes(z = Density), stroke = 0.1, colour = "grey") +
-    coord_equal() +
-    scale_fill_viridis() +
-    theme_bw()
+ggplot(forest_mod$pred_data) +
+  aes(x = X, y = Y,fill = Density) +
+  geom_tile() +
+  scale_fill_manual(values = c("#450D54","#56C666","#FDE823"))+
+  coord_equal() +
+  theme_bw()
 })
 ```
 
-We'll look into these parameters' interpretation in more detail in later chapters. For now, you must understand that we can include habitat covariates in our model to allow density to vary across the survey region.
+In later Chapters, we'll look into these parameters' interpretation in more detail. For now, you must understand that we can include habitat covariates in our model to allow density to vary across the survey region.
 
-The underlying principle of SCR is to model the spatial distribution of animals using a predefined spatial density model. This model describes the spatial point pattern of animal locations within the survey region. On the other hand, the detection function describes the probability of detecting an animal based on its distance from the detector. By combining these two components with a habitat mask, SCR models estimate density within a defined survey region while accounting for the spatial variation in detection probability.
-
-Before we move on, let's ensure we understand some of the core concepts with a quick quiz. You can try the questions multiple times; some may have more than one correct answer.
+Before moving on, let's ensure we understand some core concepts with a quick quiz. You can try the questions multiple times; some may have more than one correct answer.
 
 ```{r quiz1, echo=FALSE}
 quiz(
   caption = "Quick quiz",
-  question("How many parameters does a SCR model with constant density and a halfnormal detection function have?",
+  question("How many parameters does a SCR model with constant density and a half-normal detection function have?",
     answer("1 (Density)", message = "Almost, but what about the detection function?"),
     answer("3 (g0,σ and density)", correct = TRUE, message = "Woohoo! That's correct :) "),
     answer("2 (probability of detection and density)", message = "Not quite, remember probability of detection is now a function of distance."),

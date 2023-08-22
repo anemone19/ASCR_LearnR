@@ -15,7 +15,7 @@ library(ggimage)
 library(metR)
 library(viridis)
 library(learnr)
-
+library(DT)
 
 micro_image <- "images/micro.png"
 
@@ -98,16 +98,16 @@ ggplot(temppop,aes(x=x,y=y)) +
 ## Inhomogenous density --------------------------------------------------------------------------
 
 # using simulated datasets from acre package, specifically "ihd"
-# acre::ihd
-# 
-# # mask
-# ihdens_mask<-create.mask(ihd$traps,buffer=30)
-# 
-# # Data setup
-# ihdens_data <- read.acre(captures = ihd$capt,
-#                          traps = ihd$traps,
-#                          control_create_mask = list(buffer = 30),
-#                          loc_cov = ihd$loc_cov)
+acre::ihd
+
+# mask
+ihdens_mask<-create.mask(ihd$traps,buffer=30)
+
+# Data setup
+ihdens_data <- read.acre(captures = ihd$capt,
+                         traps = ihd$traps,
+                         control_create_mask = list(buffer = 30),
+                         loc_cov = ihd$loc_cov)
 
 # function that fits acre model for ihd dataset given different density model formulas
 # acre_data is the data object created by read.acre above
@@ -115,32 +115,60 @@ ggplot(temppop,aes(x=x,y=y)) +
 
 # section is commented out so not to run everytime tutorial loads
 
-# ihd_data_plot <- function(acre_data,dens_mod,save.fit=FALSE){
-# 
-#   model_fit <- fit.acre(acre_data,list(D=as.formula(dens_mod)),"hn",fix=list(g0=1))
-# 
-#   # dataframe for plotting
-#   pred_data<-data.frame(model_fit$D.mask)
-#   colnames(pred_data) <- "Density"
-#   pred_data$X <- as.numeric(acre_data$mask[[1]][,1])
-#   pred_data$Y <- as.numeric(acre_data$mask[[1]][,2])
-# 
-#   if(save.fit == TRUE){
-#     return(list(model_fit = model_fit, pred_data = pred_data))
-#   } else{
-#     return(pred_data)
-#   }
-# }
-# 
+ihd_data_plot <- function(acre_data,dens_mod,save.fit=FALSE){
+
+  model_fit <- fit.acre(acre_data,list(D=as.formula(dens_mod)),"hn",fix=list(g0=1))
+
+  # dataframe for plotting
+  pred_data<-data.frame(model_fit$D.mask)
+  colnames(pred_data) <- "Density"
+  pred_data$X <- as.numeric(acre_data$mask[[1]][,1])
+  pred_data$Y <- as.numeric(acre_data$mask[[1]][,2])
+
+  if(save.fit == TRUE){
+    return(list(model_fit = model_fit, pred_data = pred_data))
+  } else{
+    return(pred_data)
+  }
+}
+
 # # different density models
 # linear_mod <- ihd_data_plot(ihdens_data,"~x+y",save.fit = TRUE) # linear trend
 # quad_mod <- ihd_data_plot(ihdens_data,"~x+y+x^2+y^2+x*y",save.fit = TRUE) # quadratic trend
 # noise_mod <- ihd_data_plot(ihdens_data,"~noise",save.fit = TRUE) # continuous covariate noise
 # forest_mod <- ihd_data_plot(ihdens_data,"~forest_volumn",save.fit = TRUE) # forest volume categorical covariate
 
+# convert forest density to factor
+# forest_mod$pred_data$Density <- as.factor(round(forest_mod$pred_data$Density))
 
-# save(linear_mod,quad_mod,noise_mod,forest_mod, 
+# forest_vol_data <- forest_mod$pred_data %>%
+#   mutate(Forest = ifelse(
+#     Density == "2015", "Low",
+#     ifelse(Density == "4363", "High","Median")
+#   ))
+# 
+# rownames(forest_vol_data) <- NULL
+# 
+# 
+# save(linear_mod,quad_mod,noise_mod,forest_mod,forest_vol_data,
 #      temppop,trapdf,
 #      file = "data/dens_model.RData" )
 
+# 
+# 
+# output$forestDT <- DT::renderDT({
+#   forest_vol_data %>%
+#     select(Forest,Density) %>%
+#     distinct(Density,Forest) %>%
+#     DT::datatable(
+#       class = "cell-border",
+#       escape = FALSE,
+#       extensions = "Buttons",
+#       selection = "single",
+#       options = list(dom = "t", ordering = F)
+#     )
+# })
+
 load("data/dens_model.RData")
+
+

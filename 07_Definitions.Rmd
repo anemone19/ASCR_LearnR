@@ -64,6 +64,8 @@ knitr::opts_chunk$set(echo = TRUE)
 
 **Spatial capture-recapture** (SCR) is a statistical model for estimating animal abundance and density from capture history data. SCR models combines a model for the distribution of animals in space with a model for detection probability. By jointly modelling these aspects, SCR produce reliable density estimates. 
 
+**Spatial point pattern** refers to the arrangement or distribution of individual points or events within a two-dimensional space.
+
 **Survey (or sampling) technique(s)** are methods used to detect/capture/record animals in the field. This includes techniques such as camera trapping, DNA sampling, visual observation and many more. In the context of acoustic surveying, this involves placing microphones in a habitat to record the vocalisations of a specific species. 
 
 **Survey** in the context of SCR refers to the structured event of going out and placing detectors in a predefined arrangement and for a certain amount of time in order to collect data on a wildlife population. 
