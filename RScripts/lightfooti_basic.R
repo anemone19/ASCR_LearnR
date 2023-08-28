@@ -1,9 +1,10 @@
-# ACRE: LIGHTFOOTI SINGLE SURVEY ANALYSIS
-library(learnr)
-library(acre)
+# ACRE: LIGHTFOOTI SINGLE SURVEY ANALYSIS ----------------------------------------------
+
 library(ascr)
+library(acre)
 library(tidyverse)
 library(secr)
+
 
 # Data preparation ----------------------------------------------------------------------
 
@@ -98,16 +99,16 @@ bufferdist <- 4 * initialsigma
 
 # using suggest.buffer()
 
-suggest.buffer(secr_capthist, detectfn = "hazard halfnormal") 
+suggest.buffer(secr_capthist, detectfn = "halfnormal") 
 
 ### Pre-acre -------------------------------------------------------------------
 
 # look at function help file 
-?read.acre()
+# ?read.acre()
 
 # 1st and second arguments should be dataframes that are passed to the function 
 # create.capt()
-?create.capt
+# ?create.capt
 
 # captures must be a dataframes with at least 4 columns: col 1 -> session, col 2 -> ID 
 # col 4-> traps_ID 
@@ -262,7 +263,7 @@ save(captures,traps,mask,lightfooti_data,
      call_rates,ave_call_rate,model1,model1_boot,
      lightfooti_data2,
      model2, model2_boot, 
-     file="data/chapter5_data.RData")
+     file="data/CH5.RData")
 
 
 

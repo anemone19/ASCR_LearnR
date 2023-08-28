@@ -4,11 +4,13 @@ output: learnr::tutorial
 runtime: shiny_prerendered
 ---
 
-```{r setup, include=FALSE}
+```{r setup2, include=FALSE}
 # NB if you want to run the Chapter on its own, remove the number after setup in the chunk name and uncomment code below 
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
-source("RScripts/PROBD_Setup.R")
+# source("RScripts/PROBD_Setup.R")
+
+# for descriptions of shiny apps, please see the standalone scripts in the folder ShinyApps
 ```
 
 ## 2 Probability of detection

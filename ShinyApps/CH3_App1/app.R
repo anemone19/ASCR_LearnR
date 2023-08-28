@@ -1,16 +1,35 @@
+# Chapter 3 Shiny App 1 -------------------------------------------------------------------------------------
+
+# Overview: 
+# This Shiny application provides an interactive visualization tool to explore different detection functions. 
+# Detection functions describe the probability of detecting an object (or signal) based on its distance from a sensor 
+# (or detector). The user can choose among various detection functions and adjust their parameters to observe 
+# how the probability of detection changes with distance.
+
+
+# Key Features:
+
+# Function Selection: Users can select the desired detection function from a dropdown list.
+
+# Adjustable Parameters: Users can adjust key parameters of the chosen detection function using sliders. 
+# For instance, they can modify values like (initial detection probability) and σ (scale parameter). Some 
+# functions also have additional parameters likez for the Hazard Rate function.
+
+# Interactive Plot: As parameters are adjusted, the plot updates in real-time to show the corresponding 
+# detection function curve.
+
+# required libraries
 library(shiny)
 library(ggplot2)
 library(shinyWidgets)
 
-# Define functions
+# Setup ---------------------------------------------------------------------------------------------------------
 
-# halfnormal
 # Sequences of distances
 dist_seq <- seq(0, 100, 0.01)
 
 # constant detection probability dataframe
 const_p_dat <- data.frame(x=dist_seq,y=0.25)
-
 
 # Half-Normal Detection Function
 halfnormal <- function(distance, g0, sigma) {
@@ -22,8 +41,6 @@ probs <- halfnormal(dist_seq,1,20)
 
 # dataframe for plotting 
 hn_detfunc_dat<-data.frame(dist=dist_seq,probs=probs) 
-
-# Objects for detection function shiny app ---------------------------------------------------------
 
 # Additional detection Functions
 
@@ -46,7 +63,6 @@ uniform <- function(distance, g0, sigma) {
 hazard_halfnormal <- function(distance, g0, sigma) {
   1 - exp(-g0 * exp(-distance^2 / (2 * sigma^2)))
 }
-
 
 # Names of detection functions fordropdown list in shiny app
 detfunctions <- c("Halfnormal", "Hazard Rate", "Exponential", "Uniform", "Hazard Halfnormal")

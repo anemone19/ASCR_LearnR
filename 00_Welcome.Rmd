@@ -15,8 +15,8 @@ library(shiny)
 frog_image <- "images/frogGraphic.png"
 micro_image <- "images/micro.png"
 
-source("RScripts/Chapter2_Setup.R")
-source("RScripts/Chapter3_Setup.R")
+source("RScripts/PROBD_Setup.R")
+source("RScripts/SCR_Setup.R")
 source("RScripts/Chapter5_Setup.R")
 
 ```
@@ -86,8 +86,8 @@ Lastly, I'd like to re-emphasize that this is an introductory course. If you're 
 
 [**3 Introduction to SCR**]{.underline} <font size="1" color = "#959595" > Reading time: 11 minutes </font>
 
--   Spatial capture-recapture survey structure
--   Spatial capture-recapture model structure
+-   Survey structure
+-   Model structure
 -   Quiz
 -   Summary
 
@@ -106,8 +106,8 @@ Lastly, I'd like to re-emphasize that this is an introductory course. If you're 
 -   $\texttt{acre}$-formatting
 -   Model fitting
 -   Inference 
--   Exercise #1 
--   Exercise #2 
+-   Exercise 1 
+-   Exercise 2 
 -   Summary 
 
 [**Definitions**]{.underline}
@@ -132,7 +132,7 @@ As you can see, each chapter concludes with a summary of the key points taught. 
 
 <br/>
 
-The tutorial is built to progress from chapter to chapter (although you can skip a chapter if you want). These are the key concepts and points to understand before moving on the next chapter.
+The tutorial is built to progress from chapter to chapter (although you can skip a chapter if you want). The summary contains the key concepts and points to understand before moving on the next chapter.
 
 #### Exercises and quizzes 
 
@@ -215,7 +215,7 @@ This tutorial comprises 50% of my portfolio dissertation. The rest consisted of 
 
 ```{r echo=FALSE}
 
-xfun::embed_file("Reflective_Essay.pdf")
+xfun::embed_file("Masters_Dissertation_Report.pdf")
 
 ```
 

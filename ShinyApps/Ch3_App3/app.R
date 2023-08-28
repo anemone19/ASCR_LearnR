@@ -1,19 +1,24 @@
-#
-# This is a Shiny web application. You can run the application by clicking
-# the 'Run App' button above.
-#
-# Find out more about building applications with Shiny here:
-#
-#    http://shiny.rstudio.com/
-#
+# Chapter 3 Shiny App 3 ------------------------------------------------------------------------------------
 
+# Overview: 
+# The app provides an interactive visualization to explore how varying the density 
+# (number of locations per hectare) impacts the distribution of simulated points within a defined space.
+
+# Key Features:
+# Density Slider: Allows users to adjust the density of simulated points in a given space. 
+# The density is specified as the number of locations per hectare, and the user can select values ranging from 0 to 200.
+#  Interactive Visualization: Displays a scatter plot of simulated points. 
+# The distribution of these points changes based on the selected density value.
+
+# required libraries
 library(shiny)
 library(plotly)
 library(secr)
 library(tidyverse)
 library(shinyWidgets)
 
-# Define UI for application that draws a histogram
+# UI ------------------------------------------------------------------------------------------------------------
+
 ui <- fluidPage(
   fluidRow(
     shinyWidgets::setSliderColor("#97CBA9", 1),
@@ -32,6 +37,8 @@ ui <- fluidPage(
     align="center"
   )
 )
+
+# SERVER ---------------------------------------------------------------------------------------------------------
 
 server <- function(input,output){
   

@@ -1,11 +1,18 @@
-#
-# This is a Shiny web application. You can run the application by clicking
-# the 'Run App' button above.
-#
-# Find out more about building applications with Shiny here:
-#
-#    http://shiny.rstudio.com/
-#
+# Chapter 3 Shiny App 3 -------------------------------------------------------------------------------------
+
+# Overview
+# The app provides an interactive visualization of a detector array (e.g., microphones) and a surrounding 
+# buffer zone. This buffer zone is adjustable, allowing users to visualize how it changes in response to 
+# varying distances.
+
+# Key Features:
+
+# Adjustable Buffer Zone: The user can adjust the size of the buffer zone around the detector array using a slider.
+# Interactive Visualization: The visualization updates in real-time, reflecting changes to the buffer zone's size.
+# Distinct Markers: The detectors are represented using custom icons (microphones), 
+# while the buffer zone is depicted using points.
+
+# Required libraries 
 
 library(shiny)
 library(tidyverse)
@@ -18,6 +25,8 @@ library(shinyWidgets)
 library(shinydashboard)
 library(ggimage)
 
+# Setup ----------------------------------------------------------------------------------------------------
+
 micro_image <- "images/micro.png"
 
 det_array <- make.grid(
@@ -28,7 +37,8 @@ det_array <- make.grid(
 trapdf <- data.frame(det_array) # dataframe for plotting
 
 
-# Define UI for application that draws a histogram
+# UI ---------------------------------------------------------------------------------------------------------
+
 ui <- fluidPage(
   fluidRow(
     shinyWidgets::setSliderColor("#97CBA9", 1),
@@ -49,7 +59,8 @@ ui <- fluidPage(
   )
 )
 
-# Define server logic required to draw a histogram
+# SERVER ---------------------------------------------------------------------------------------------------------
+
 server <- function(input, output) {
 
   output$maskBufferPlot <- renderPlot({

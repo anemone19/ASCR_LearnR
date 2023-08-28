@@ -1,3 +1,25 @@
+# Chapter 2 Shiny App 1 --------------------------------------------------------------------------------
+
+# Overview: 
+# This Shiny application simulates the process of detecting frog calls using a grid of microphones.
+# The app allows users to add frog calls to a plot, initiate a survey to detect these calls,
+# and then visualize the detection results. 
+# Additionally, users can simulate the survey process multiple times to observe the distribution of 
+# abundance estimates.
+
+# Key Features:
+
+# Visualization: Users can visually place frog calls on a grid and see the positions of microphones.
+# Detection: Once frogs are added, users can initiate a survey to detect frog calls. 
+# Detection is probabilistic, based on the distance between the frog and each microphone.
+# Metrics Display: The app displays key metrics including the true number of frog calls, 
+# the estimated number of calls, and the overall probability of detection.
+# Simulation: Users can simulate the survey process 1000 times to see the distribution of abundance 
+# estimates.
+# Interactivity: Users can reset the app to its initial state, repeat the simulation, 
+# or select specific rows to highlight particular frogs and the microphones that detected them.
+
+
 library(shiny)
 library(tidyverse)
 library(DT)
@@ -8,6 +30,7 @@ library(RColorBrewer)
 library(ggimage)
 library(ggplotify)
 
+# Setup ----------------------------------------------------------------------------------------------
 # frog image 
 
 frog_image <- "www/frogGraphic.png"
@@ -18,6 +41,21 @@ hazard_halfnormal_detection <- function(sigma, lam0, d) {
   prob <- 1 - exp(-lam0 * exp(-d * (2 * sigma^2)))
   return(prob)
 }
+
+# Function
+# Description:
+# This function calculates the probability of successful detection for each point in a given dataframe 
+# based on its distance from a specified detector. 
+# The function also simulates detection events for each point based on these probabilities.
+
+# Parameters: 
+# dataframe: A dataframe containing the x and y coordinates of the points (e.g., frog calls). 
+# The dataframe should have columns named x and y.
+# detector: A list or vector containing the x and y coordinates of the detector, named as x and y, respectively.
+
+# Return: 
+# A vector of binary values (1 or 0), indicating the simulated detection (1) or non-detection (0) of each point in the dataframe
+# based on the calculated probabilities.
 
 calculate_prob_succ <- function(dataframe, detector) {
   # Calculate distance between each point and the detector
@@ -67,7 +105,8 @@ common_theme <- theme(
 )
 
 
-# Define UI
+# UI ----------------------------------------------------------------------------------------------------------------
+
 ui <- fluidPage(
   fluidRow(
     column(
@@ -104,7 +143,8 @@ ui <- fluidPage(
 )
 
 
-# Define server logic
+# SERVER ----------------------------------------------------------------------------------------------------------------
+
 server <- function(input, output, session) {
   
   # DEFAULT DISPLAY --------------------------------------------------------------------
@@ -277,6 +317,9 @@ server <- function(input, output, session) {
     }
   })
   
+  # --------------------------------------------------------------------------------------------------------------
+  # ROW SELECTION ------------------------------------------------------------------------------------------------
+  
   # when row selected, show frog and microphone which detected call 
   observeEvent(input$captHistData_rows_selected, {
     selected_row <- input$captHistData_rows_selected
@@ -353,8 +396,9 @@ server <- function(input, output, session) {
     
   })
 
+  # ----------------------------------------------------------------------------------------------------------
+  # STARTOVER ------------------------------------------------------------------------------------------------
   
-  # Reset to initial state when "Start Over" button is clicked
   observeEvent(input$startOverBtn, {
     points(data.frame(x = numeric(0), y = numeric(0)))
     
@@ -407,7 +451,8 @@ server <- function(input, output, session) {
     })
   })
   
-  # Simualtion
+  # --------------------------------------------------------------------------------------------------
+  # Simulation ---------------------------------------------------------------------------------------
   
   observeEvent(input$repeatBtn, {
     if (is.null(points()) || nrow(points()) == 0) {
@@ -474,10 +519,5 @@ server <- function(input, output, session) {
 }
 
 
-
 # Run the application
 shinyApp(ui = ui, server = server)
-
-# rsconnect::deployApp("/Users/anecloete/Desktop/2023/Dissertation/ASCR_LearnR/CH2_App1",forceUpdate = T)
-# 
-# shinyap

@@ -1,12 +1,16 @@
-#
-# This is a Shiny web application. You can run the application by clicking
-# the 'Run App' button above.
-#
-# Find out more about building applications with Shiny here:
-#
-#    http://shiny.rstudio.com/
-#
+# Chapter 3 Shiny App 4 ---------------------------------------------------------------------------------------------------------
 
+# Overview 
+# The app provides an interactive platform to explore the influence of different density models on a simulated dataset
+# from the acre package, specifically the "ihd" dataset. Users can visualize the spatial variation in density based on 
+# various models.
+
+# Key Features:
+# Multiple Density Models: The app showcases four density models - Linear trend, Quadratic trend, Noise,
+# and Forest cover.
+# Interactive Tabs: Each density model has its dedicated tab showcasing the related spatial visualization.
+
+# Required libraries 
 library(shiny)
 library(secr)
 library(tidyverse)
@@ -14,6 +18,7 @@ library(acre)
 library(metR)
 library(viridis)
 
+# Setup -------------------------------------------------------------------------------------------------------------------------
 # using simulated datasets from acre package, specifically "ihd"
 acre::ihd
 
@@ -53,6 +58,7 @@ quad_mod <- ihd_data_plot(ihdens_data,"~x+y+x^2+y^2+x*y") # quadratic trend
 noise_mod <- ihd_data_plot(ihdens_data,"~noise",save.fit = TRUE) # continuous covariate noise
 forest_mod <- ihd_data_plot(ihdens_data,"~forest_volumn") # forest volume categorical covariate
 
+# UI --------------------------------------------------------------------------------------------------------
 ui <- fluidPage(
   # use shiny feedback
   tabsetPanel(
@@ -73,6 +79,8 @@ ui <- fluidPage(
              plotOutput("forestPlot") )
   )
 )
+
+# SERVER --------------------------------------------------------------------------------------------------------
 
 server <- function(input, output) {
   output$linearPlot <- renderPlot({

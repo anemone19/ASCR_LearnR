@@ -1,26 +1,35 @@
-# test 
+# Chapter 2: Probability of detection setup script -------------------------------------------------------
 
-# libraries
+# load libraries -----------------------------------------------------------------------------------------
 
-library(shiny)
-library(tidyverse)
-library(DT)
-library(ggimage)
-library(shinyWidgets)
-library(shinydashboard)
-library(secr)
-library(plotly)
-library(ggplotify)
-library(tippy)
+libraries <- c("shiny", "tidyverse", "DT", "ggimage", "shinyWidgets", "shinydashboard",
+               "secr", "plotly", "ggplotify", "tippy")
 
-
+lapply(libraries, require, character.only = TRUE)
 
 # load images for plotting
+
 frog_image <- "images/frogGraphic.png"
 micro_image <- "images/micro.png"
 
-# function 
+# function(s) ---------------------------------------------------------------------------------------------
 
+# Description:
+# This function is designed to visually annotate a relationship between two points (represented by trap and frog)
+# on a graphical plot. Specifically, it draws a line segment connecting the two points and 
+# places a text label near the starting point (trap) indicating the Euclidean distance between the two points.
+
+# Parameters: 
+# trap: A vector or list containing the x and y coordinates of the starting point (typically representing the trap's location).
+# frog: A vector or list containing the x and y coordinates of the ending point (typically representing the frog's location).
+# det (default = "no"): A string indicating if the annotation should be highlighted. 
+# If set to "yes", the line segment and text will be colored dark green; 
+# otherwise, they will be colored grey (for the line) and black (for the text).
+
+# Return: 
+# A line segment (annotate("segment", ...)) connecting the trap and frog points.
+# A text label (annotate("text", ...)) positioned slightly above the trap point, 
+# displaying the Euclidean distance between trap and frog.
 
 add_annotation <- function(trap, frog, det = "no") {
   x1 <- unlist(trap[1]) # x1/x2/y1/y2 defined here for shorthand later
@@ -53,7 +62,19 @@ add_annotation <- function(trap, frog, det = "no") {
   )
 }
 
-# data 
+# load data --------------------------------------------------------------------------------------------
+
+# list of objects in CH2_1: 
+# temppop - simulated population
+# CH_combined - capture histories of sim population
+# det_array - detector coordinates
+# det_dat - dataframe of detections 
+# trapdf - trapdf coordinates dataframe 
+
+# list of objects in CH2_1: 
+# distdf - dataframe containing distances between detectors and frogs
+# prop - datatframe containing prob of detection for distance bins 
+# captrues - captures dataframe in acre format 
 
 load("data/CH2_1.RData")
 load("data/CH2_2.RData")

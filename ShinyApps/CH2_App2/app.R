@@ -1,6 +1,22 @@
 # Chapter 2 RScript --------------------------------------------------------------------------------
-# Required Libraries
+# Chapter 2 Shiny App 2 --------------------------------------------------------------------------------
 
+# Overview: 
+# This Shiny application offers an interactive visualization of frog detections based on their proximity
+# to various microphones (detectors). It allows users to click on a frog and visualize its distance from 
+# each microphone, emphasizing the ones that detected its call.
+
+# Key features: 
+# Microphone and Frog Distribution Plot: A plot showcasing the distribution of frogs and microphones. 
+# Frogs are color-coded based on whether they were detected or not. 
+# Microphones are consistently displayed across plots.
+
+# Individual Frog Detection Plot: 
+# When a user clicks on a frog in the main plot, a secondary plot showcases the distances from that frog 
+# to all microphones. If the frog was detected, the distances to the microphones that detected the frog 
+# are emphasized in color.
+
+# Required Libraries
 library(shiny)
 library(tidyverse)
 library(DT)
@@ -8,6 +24,7 @@ library(ggimage)
 library(shinyWidgets)
 library(shinydashboard)
 library(secr)
+library(RColorBrewer)
 library(plotly)
 library(ggplotify)
 library(tippy)
@@ -24,7 +41,7 @@ micro_image <- "images/micro.png"
 e2dist <- function(x, y) {
   if (!is.matrix(x)) x <- as.matrix(x)
   if (!is.matrix(y)) y <- as.matrix(y)
-  
+
   i <- sort(rep(1:nrow(y), nrow(x)))
   dvec <- sqrt((x[, 1] - y[i, 1])^2 + (x[, 2] - y[i, 2])^2)
   matrix(dvec, nrow = nrow(x), ncol = nrow(y), byrow = F)
@@ -51,9 +68,9 @@ temppop <- sim.popn(D = 5, expand.grid(x = c(0, 100), y = c(0, 100)), buffer = 5
 # generate capture histories with halfnormal detection function, g0 = 1, sigma = 20
 
 CH <- sim.capthist(det_array,
-                   detectpar = list(g0 = 1, sigma = 20),
-                   noccasions = 1,
-                   popn = temppop, renumber = FALSE
+  detectpar = list(g0 = 1, sigma = 20),
+  noccasions = 1,
+  popn = temppop, renumber = FALSE
 )
 
 # modify capture histories
@@ -73,239 +90,196 @@ det_dat <- temppop %>%
     num = row_number()
   )
 
-# save(temppop,CH_combined,det_array,det_dat,trapdf,file = "data/CH2.RData")
-# load("data/CH2.RData")
+# convert
 
-# Additional objects for second shiny app ------------------------------------------------------
+# Create a matrix of row and column indices where capt == 1
+indices <- which(as.data.frame(CH_combined) == 1, arr.ind = TRUE)
 
-#calculate distances between all frogs and detectors
-distances <- t(e2dist(det_array, temppop))
-distances_df <- data.frame(d = as.numeric(distances))
+# Extract the row and column indices
+ID <- rownames(indices)
+traps_ID <- indices[, 2]
 
-# distances between detected frogs and all detectors
-all_detect_distances <- distances[as.numeric(rownames(CH_combined)), ]
+# Create a dataframe with the results
+captures <- data.frame(ID, trap = traps_ID) %>%
+  arrange(ID)
 
-# extract only distances of detected frogs, i.e. where CH_combined = 1
+# calculate distances between all frogs and detectors
+distances <- as.data.frame(t(e2dist(det_array, temppop)))
 
-detect_distances <- c()
 
-# Checking if entry in df1 is equal to 1 and extracting corresponding entry from df2
-for (i in 1:nrow(CH_combined)) {
-  for (j in 1:ncol(CH_combined)) {
-    if (CH_combined[i, j] == 1) {
-      detect_distances <- c(detect_distances, all_detect_distances[i, j])
-    }
+# FUNCTION ADD_ANNOTATION
+# Description:
+# This function is designed to visually annotate a relationship between two points (represented by trap and frog)
+# on a graphical plot. Specifically, it draws a line segment connecting the two points and 
+# places a text label near the starting point (trap) indicating the Euclidean distance between the two points.
+
+# Parameters: 
+# trap: A vector or list containing the x and y coordinates of the starting point (typically representing the trap's location).
+# frog: A vector or list containing the x and y coordinates of the ending point (typically representing the frog's location).
+# det (default = "no"): A string indicating if the annotation should be highlighted. 
+# If set to "yes", the line segment and text will be colored dark green; 
+# otherwise, they will be colored grey (for the line) and black (for the text).
+
+# Return: 
+# A line segment (annotate("segment", ...)) connecting the trap and frog points.
+# A text label (annotate("text", ...)) positioned slightly above the trap point, 
+# displaying the Euclidean distance between trap and frog.
+
+add_annotation <- function(trap, frog, det = "no") {
+  x1 <- unlist(trap[1]) # x1/x2/y1/y2 defined here for shorthand later
+  x2 <- unlist(frog[1])
+  y1 <- unlist(trap[2])
+  y2 <- unlist(frog[2])
+
+  if (det == "yes") {
+    lineCol <- "darkgreen"
+    textCol <- "darkgreen"
+  } else {
+    lineCol <- "grey"
+    textCol <- "black"
   }
+
+  # the function will return the last object it creates, ie this list with two objects
+  list(
+    annotate("segment",
+      color = lineCol,
+      x = x1, xend = x2,
+      y = y1, yend = y2
+    ),
+    annotate("text",
+      color = textCol, size = 4,
+      x = x1, y = y1 + 13,
+      label = paste(
+        round(sqrt((x1 - x2)^2 + (y1 - y2)^2), digits = 1)
+      )
+    )
+  )
 }
 
-# create dataframe with detected distances,
-# and frog locations of all not detected that were within 50 m from a microphone
-# detect_distances_df <- data.frame(d = detect_distances)
 
-distdf <- data.frame(
-  dist = c(detect_distances, as.numeric(distances)),
-  group = c(rep("Detected", length(detect_distances)), rep("All", nrow(distances_df)))
-)
-
-
-# Proportions plot
-
-# Cut distances into intervals
-# Define the intervals
-intervals <- seq(0, 50, 10)
-
-interval_counts_det <- table(cut(subset(distdf$dist, 
-                                        distdf$group == "Detected"),
-                                 breaks = intervals,
-                                 include.lowest = TRUE))
-
-interval_counts_Ndet <- table(cut(subset(distdf$dist, 
-                                         distdf$group == "All"),
-                                  breaks = intervals,
-                                  include.lowest = TRUE))
-
-props <- as.numeric(interval_counts_det / interval_counts_Ndet)
-
-# Given dataframe 'prop'
-prop <- data.frame(
-  Var1 = c(5,15,25,35,45),
-  Freq = props
-)
-
-
-# Shiny App ------------------------------------------------------------------------------------------
+# UI ----------------------------------------------------------------------------------------------------------------
 
 ui <- fluidPage(
-  fluidRow(
-    plotlyOutput("histDistPlot"),
-    conditionalPanel(
-      "input.propBtn%2 == 1",
-      plotlyOutput("propPlot")
+  fluidPage(
+    fluidRow(
+      column(6, plotOutput("distPlot",click = "plot_click")),
+      column(6, plotOutput("isoFrogPlot"))
     )
-  ),
-  br(),
-  fluidRow(
-    actionButton("allFrogs", "All frogs", style = "color: #fff; background-color: #668ba4; border-color: #2e6da4"),
-    actionButton("addDet", "Detected frogs", style = "color: #fff; background-color: #668ba4; border-color: #2e6da4"),
-    actionButton("propBtn", "Proportions detected", style = "color: #fff; background-color: #668ba4; border-color: #2e6da4"),
-    align = "center"
   )
 )
 
+# SERVER ------------------------------------------------------------------------------------------------------------
 
-
-# Define server logic required to draw a histogram
 server <- function(input, output) {
-  output$histDistPlot <- renderPlotly({
-    ggplotly(
-      ggplot(distdf[15:239,], aes(x = dist, group='All',text=after_stat(count))) +
-        geom_histogram(
-          alpha = 0.5, binwidth = 10,
-          center = 5, position = "identity",
-          colour = "#5b7a65",
-          fill = "#97CBA9"
-        ) +
-        labs(
-          x = "\nDistance (m)",
-          y = "Count\n"
-        ) +
-        scale_x_continuous(breaks=seq(0,200,10)) +
-        theme_minimal() +
-        theme(
-          axis.text = element_text(size = 10),
-          axis.title = element_text(size = 10),
-        ),
-      tooltip = c("text")
-    )
-    
+  output$distPlot <- renderPlot({
+    ggplot(det_dat) +
+      geom_image(aes(x = x, y = y, colour = det, image = frog_image), size = 0.09) +
+      geom_image(data = det_array, aes(x = x, y = y, image = micro_image), size = 0.2) +
+      geom_text(aes(x = x, y = y, label = num),
+        vjust = 0.5, hjust = 0.5, colour = "white",
+        size = 2, fontface = "bold"
+      ) +
+      labs(
+        x = "\nX",
+        y = "Y\n"
+      ) +
+      scale_color_manual(values = c(
+        "Detected" = "darkgreen",
+        "Not Detected" = "darkred"
+      )) +
+      theme(
+        legend.position = "top",
+        legend.title = element_blank(),
+        panel.background = element_rect(fill = "#c1e0cb"),
+        legend.text = element_text(size = 7)
+      ) +
+      scale_x_continuous(n.breaks = 15) +
+      scale_y_continuous(n.breaks = 10)
   })
-  
-  observeEvent(input$allFrogs, {
-    output$histDistPlot <- renderPlotly({
-      ggplotly(
-        ggplot(distdf[15:239,], aes(x = dist, text = after_stat(count))) +
-          geom_histogram(
-            alpha = 0.5, binwidth = 10,
-            center = 5, position = "identity",
-            colour = "#5b7a65",
-            fill = "#97CBA9"
-          ) +
-          labs(
-            x = "\nDistance (m)",
-            y = "Count\n"
-          ) +
-          scale_x_continuous(breaks=seq(0,200,10)) +
-          theme_minimal() +
-          theme(
-            axis.text = element_text(size = 10),
-            axis.title = element_text(size = 10),
-          ),
-        tooltip = c("text")
-      )
-      
-    })
-    
-    #   output$propPlot <- renderPlotly({
-    #   NULL
+
+  frog_row <- reactiveVal()
+
+  # click to generate density plot
+  observeEvent(input$plot_click, {
+    frog_row <- nearPoints(det_dat, input$plot_click, maxpoints = 1)
+
+    # output$text <- renderPrint({
+    #   nrow(frog_row)
     # })
-    
+
+    baseplot <- ggplot(frog_row) +
+      geom_image(aes(x = x, y = y, colour = det, image = frog_image), size = 0.09) +
+      geom_image(data = det_array, aes(x = x, y = y, image = micro_image), size = 0.2) +
+      geom_text(aes(x = x, y = y, label = num),
+        vjust = 0.5, hjust = 0.5, colour = "white",
+        size = 2, fontface = "bold"
+      ) +
+      labs(
+        x = "\nX",
+        y = "Y\n"
+      ) +
+      scale_color_manual(values = c(
+        "Detected" = "darkgreen",
+        "Not Detected" = "darkred"
+      )) +
+      theme(
+        legend.position = "top",
+        legend.title = element_blank(),
+        panel.background = element_rect(fill = "#c1e0cb"),
+        legend.text = element_text(size = 7)
+      ) +
+      xlim(-50, 150) +
+      ylim(-50, 150)
+
+    if (nrow(frog_row) == 0) {
+      showModal(modalDialog(
+        title = "Oops!",
+        "Please click on a frog :)",
+        easyClose = TRUE
+      ))
+    } else {
+      output$isoFrogPlot <- renderPlot({
+        if (frog_row$det == "Detected") {
+          # Extract trap IDs
+          micro_index <- captures$trap[captures$ID == frog_row$num]
+
+          # Filter trapdf to include only micro_index rows
+          micro_trapdf <- trapdf[micro_index, ]
+
+          # Create a base plot
+          plot <- baseplot
+
+          # Iterate through micro_index and add annotations to the plot
+          for (i in seq_along(micro_index)) {
+            plot <- plot +
+              add_annotation(micro_trapdf[i, ], frog_row[, 1:2], det = "yes")
+          }
+
+          # Find indices of rows not in micro_index
+          rest_index <- setdiff(rownames(trapdf), rownames(micro_trapdf))
+
+          # Iterate through rest_index and add annotations to the plot
+          for (i in seq_along(rest_index)) {
+            plot <- plot +
+              add_annotation(trapdf[rest_index[i], ], frog_row[, 1:2])
+          }
+          
+          plot 
+          
+        } else {
+          annotations <- list()
+
+          for (i in 1:9) {
+            annotations[[i]] <- add_annotation(trapdf[i, ], frog_row[, 1:2])
+          }
+
+          baseplot + annotations
+        }
+      })
+    }
   })
-  # Add detections
-  
-  observeEvent(input$addDet, {
-    output$histDistPlot <- renderPlotly({
-      ggplotly(
-        ggplot(distdf, aes(x = dist, fill = group, colour = group, text = after_stat(count))) +
-          geom_histogram(
-            alpha = 0.5, binwidth = 10,
-            center = 5, position = "identity"
-          ) +
-          scale_fill_manual(
-            values = c("#97CBA9", "#668BA4"),
-            labels = c("All", "Detected"),
-            guide = guide_legend(title = "", position = "top")
-          ) +
-          scale_color_manual(
-            values = c("#5b7a65", "#142D4C"),
-            labels = c("All", "Detected"),
-            guide = guide_legend(title = "", position = "top")
-          ) +
-          labs(
-            x = "\nDistance (m)",
-            y = "Count\n"
-          ) +
-          scale_x_continuous(breaks=seq(0,200,10)) +
-          theme_minimal() +
-          theme(
-            axis.text = element_text(size = 10),
-            axis.title = element_text(size = 10),
-          ),
-        tooltip = c("text")
-      ) %>%
-        layout(legend = list(
-          orientation = "h"
-        ))
-    })
-    
-    #   output$propPlot <- renderPlotly({
-    #   NULL
-    # })
-  })
-  
-  observeEvent(input$propBtn, {
-    output$histDistPlot <- renderPlotly({
-      ggplotly(
-        ggplot(distdf[distdf$dist <= 50, ], aes(x = dist, fill = group, colour = group, text = after_stat(count))) +
-          geom_histogram(
-            alpha = 0.5, binwidth = 10,
-            center = 5, position = "identity"
-          ) +
-          scale_fill_manual(
-            values = c("#97CBA9", "#668BA4"),
-            labels = c("All", "Detected"),
-            guide = guide_legend(title = "")
-          ) +
-          scale_color_manual(
-            values = c("#5b7a65", "#142D4C"),
-            labels = c("All", "Detected"),
-            guide = guide_legend(title = "")
-          ) +
-          labs(
-            x = "\nDistance (m)",
-            y = "Count\n"
-          ) +
-          theme_minimal() +
-          theme(
-            axis.text = element_text(size = 10),
-            axis.title = element_text(size = 10),
-            legend.position = "top"
-          ),
-        tooltip = c("text")
-      ) %>%
-        layout(legend = list(
-          orientation = "h"
-        ))
-    })
-    
-    output$propPlot <- renderPlotly({
-      ggplotly(
-        # Plot the bar plot
-        ggplot(prop, aes(x = Var1, y = Freq, text = round(Freq,2))) +
-          geom_bar(stat = "identity", colour = "#5b7a65", fill = "#97CBA9") +
-          labs(x = "\nDistance (m)",
-               y = "Probability of detection\n") +
-          theme_minimal() +
-          theme(
-            axis.text = element_text(size = 10),
-            axis.title = element_text(size = 10)
-          ),
-        tooltip = c("text")
-      )
-      
-    })
-  })
-    
 }
+
 
 # Run the application
 shinyApp(ui = ui, server = server)

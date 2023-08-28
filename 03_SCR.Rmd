@@ -9,7 +9,7 @@ runtime: shiny_prerendered
 
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
-#source("RScripts/Chapter3_Setup.R")
+#source("RScripts/SCR_Setup.R")
 
 ```
 
