@@ -132,42 +132,28 @@ ihd_data_plot <- function(acre_data,dens_mod,save.fit=FALSE){
   }
 }
 
-# # different density models
-# linear_mod <- ihd_data_plot(ihdens_data,"~x+y",save.fit = TRUE) # linear trend
-# quad_mod <- ihd_data_plot(ihdens_data,"~x+y+x^2+y^2+x*y",save.fit = TRUE) # quadratic trend
-# noise_mod <- ihd_data_plot(ihdens_data,"~noise",save.fit = TRUE) # continuous covariate noise
-# forest_mod <- ihd_data_plot(ihdens_data,"~forest_volumn",save.fit = TRUE) # forest volume categorical covariate
+# different density models
+linear_mod <- ihd_data_plot(ihdens_data,"~x+y",save.fit = TRUE) # linear trend
+quad_mod <- ihd_data_plot(ihdens_data,"~x+y+x^2+y^2+x*y",save.fit = TRUE) # quadratic trend
+noise_mod <- ihd_data_plot(ihdens_data,"~noise",save.fit = TRUE) # continuous covariate noise
+forest_mod <- ihd_data_plot(ihdens_data,"~forest_volumn",save.fit = TRUE) # forest volume categorical covariate
 
 # convert forest density to factor
-# forest_mod$pred_data$Density <- as.factor(round(forest_mod$pred_data$Density))
+forest_mod$pred_data$Density <- as.factor(round(forest_mod$pred_data$Density))
 
-# forest_vol_data <- forest_mod$pred_data %>%
-#   mutate(Forest = ifelse(
-#     Density == "2015", "Low",
-#     ifelse(Density == "4363", "High","Median")
-#   ))
-# 
-# rownames(forest_vol_data) <- NULL
-# 
-# 
-# save(linear_mod,quad_mod,noise_mod,forest_mod,forest_vol_data,
-#      temppop,trapdf,
-#      file = "data/dens_model.RData" )
+forest_vol_data <- forest_mod$pred_data %>%
+  mutate(Forest = ifelse(
+    Density == "2015", "Low",
+    ifelse(Density == "4363", "High","Median")
+  ))
 
-# 
-# 
-# output$forestDT <- DT::renderDT({
-#   forest_vol_data %>%
-#     select(Forest,Density) %>%
-#     distinct(Density,Forest) %>%
-#     DT::datatable(
-#       class = "cell-border",
-#       escape = FALSE,
-#       extensions = "Buttons",
-#       selection = "single",
-#       options = list(dom = "t", ordering = F)
-#     )
-# })
+rownames(forest_vol_data) <- NULL
+
+
+save(linear_mod,quad_mod,noise_mod,forest_mod,forest_vol_data,
+     temppop,trapdf,
+     file = "data/dens_model.RData" )
+
 
 load("data/dens_model.RData")
 

@@ -11,7 +11,7 @@ runtime: shiny_prerendered
 
 ```
 
-## 5 ASCR-CD
+## 5 aSCR Calling Density (aSCR-CD)
 
 We'll be working with acoustic data collected a few years back on a population of Cape Moss frogs. This data was gathered by <a href="https://besjournals.onlinelibrary.wiley.com/doi/full/10.1111/2041-210X.12291" target="_blank">Stevenson et al. (2015)</a>, who also authored the paper that details the specific aSCR-CD model we'll be using. In their survey, they positioned six microphones in a somewhat circular arrangement within the frogs' habitat. We use the same 25-second subset of the recording as in the paper, which was processed using PAMGUARD to identify the frog's calls.
 
@@ -488,7 +488,8 @@ A non-constant density model may be misleading when fitting aSCR-CD models. Area
 <br/>
 
 ```{r echo=FALSE}
+
 # a single file
-xfun::embed_file("lightfooti_basic.R")
+xfun::embed_file("RScripts/lightfooti_basic.R")
 
 ```

@@ -8,7 +8,6 @@ library(ggimage)
 library(shinyWidgets)
 library(shinydashboard)
 library(secr)
-library(RColorBrewer)
 library(plotly)
 library(ggplotify)
 library(tippy)
@@ -18,7 +17,6 @@ library(tippy)
 # load images for plotting
 frog_image <- "images/frogGraphic.png"
 micro_image <- "images/micro.png"
-
 
 # Function(s) -----------------------------------------------------------------------------------
 
@@ -31,7 +29,38 @@ e2dist <- function(x, y) {
   matrix(dvec, nrow = nrow(x), ncol = nrow(y), byrow = F)
 }
 
-# Objects for first shiny app -------------------------------------------------------------------
+add_annotation <- function(trap, frog, det = "no") {
+  x1 <- unlist(trap[1]) # x1/x2/y1/y2 defined here for shorthand later
+  x2 <- unlist(frog[1])
+  y1 <- unlist(trap[2])
+  y2 <- unlist(frog[2])
+  
+  if (det == "yes") {
+    lineCol <- "darkgreen"
+    textCol <- "darkgreen"
+  } else {
+    lineCol <- "grey"
+    textCol <- "black"
+  }
+  
+  # the function will return the last object it creates, ie this list with two objects
+  list(
+    annotate("segment",
+             color = lineCol,
+             x = x1, xend = x2,
+             y = y1, yend = y2
+    ),
+    annotate("text",
+             color = textCol, size = 4.5,
+             x = x1, y = y1 + 13,
+             label = paste(
+               round(sqrt((x1 - x2)^2 + (y1 - y2)^2), digits = 1)
+             )
+    )
+  )
+}
+
+# Setup Shiny App 1 -------------------------------------------------------------------
 
 # Created microphone array with make.grid() from package secr
 #  9 microphones, 50 units apart, detector is of type proximity
@@ -74,10 +103,9 @@ det_dat <- temppop %>%
     num = row_number()
   )
 
-# save(temppop,CH_combined,det_array,det_dat,trapdf,file = "data/CH2.RData")
-load("data/CH2.RData")
+save(temppop,CH_combined,det_array,det_dat,trapdf,file = "data/CH2_1.RData")
 
-# Additional objects for second shiny app ------------------------------------------------------
+# Setup Shiny App 3 ----------------------------------------------------------------------
 
 #calculate distances between all frogs and detectors
 distances <- t(e2dist(det_array, temppop))
@@ -89,6 +117,7 @@ all_detect_distances <- distances[as.numeric(rownames(CH_combined)), ]
 # extract only distances of detected frogs, i.e. where CH_combined = 1
 
 detect_distances <- c()
+
 # Checking if entry in df1 is equal to 1 and extracting corresponding entry from df2
 for (i in 1:nrow(CH_combined)) {
   for (j in 1:ncol(CH_combined)) {
@@ -107,20 +136,23 @@ distdf <- data.frame(
   group = c(rep("Detected", length(detect_distances)), rep("All", nrow(distances_df)))
 )
 
-
 # Proportions plot
 
 # Cut distances into intervals
 # Define the intervals
 intervals <- seq(0, 50, 10)
 
-interval_counts_det <- table(cut(subset(distdf$dist, distdf$group == "Detected"), breaks = intervals, include.lowest = TRUE))
+interval_counts_det <- table(cut(subset(distdf$dist, 
+                                        distdf$group == "Detected"),
+                                 breaks = intervals,
+                                 include.lowest = TRUE))
 
-interval_counts_Ndet <- table(cut(subset(distdf$dist, distdf$group == "All"), breaks = intervals, include.lowest = TRUE))
+interval_counts_Ndet <- table(cut(subset(distdf$dist, 
+                                         distdf$group == "All"),
+                                  breaks = intervals,
+                                  include.lowest = TRUE))
 
 props <- as.numeric(interval_counts_det / interval_counts_Ndet)
-
-# save(prop, file = "data/prop.RData")
 
 # Given dataframe 'prop'
 prop <- data.frame(
@@ -128,87 +160,18 @@ prop <- data.frame(
   Freq = props
 )
 
-#save(distdf,prop,file="data/CH2_2.RData")
-load("data/CH2_2.RData")
+# Setup Shiny App 2 ----------------------------------------------------------------------
 
+# Create a matrix of row and column indices where capt == 1
+indices <- which(as.data.frame(CH_combined) == 1, arr.ind = TRUE)
 
-# selected_row <- det_ind[3,]
-# 
-# # row_name <- rownames(selected_row)
-# # row_num <- substr(row_name, nchar(row_name), nchar(row_name))
-# 
-# det_dat <- selected_row %>%
-#   mutate(
-#     det = ifelse(row_number() %in% rownames(CH), "Detected", "Not Detected"),
-#     num = row_number()
-#   )
-# 
-# det_dat <- points() %>%
-#   mutate(
-#     det = ifelse(row_number() %in% rownames(cpt_rv()), "Detected", "Not Detected"),
-#     num = row_number()
-#   )
-# 
-# ggplot(det_dat) +
-#   geom_image(aes(x = x, y = y, colour = det, image = frog_image), size = 0.09) +
-#   geom_image(data = trapdf, aes(x = x, y = y, image = micro_image), size = 0.25) +
-#   geom_text(aes(x = x, y = y, label = num), vjust = 0.5, hjust = 0.5, colour = "white", size = 4, fontface = "bold") +
-#   scale_color_manual(values = c(
-#     "Detected" = "darkgreen",
-#     "Not Detected" = "darkred"
-#   )) +
-#   xlim(-50, 150) +
-#   ylim(-50, 150) +
-#   theme(
-#     legend.position = "bottom",
-#     legend.title = element_blank(),
-#     panel.background = element_rect(fill = "#c1e0cb"),
-#     axis.title = element_blank(),
-#     axis.text = element_blank(),
-#     axis.ticks = element_blank(),
-#     panel.grid.minor = element_blank(),
-#     panel.grid.major = element_blank(),
-#     legend.text = element_text(size = 12)
-#   )
-# ggplotly(
-#   ggplot(distdf[15:239,], aes(x = dist, group='All')) +
-#     geom_histogram(
-#       alpha = 0.5, binwidth = 10,
-#       center = 5, position = "identity",
-#       colour = "#5b7a65",
-#       fill = "#97CBA9"
-#     ) +
-#     labs(
-#       x = "\nDistance (m)",
-#       y = "Count\n"
-#     ) +
-#     scale_x_continuous(breaks=seq(0,200,10)) +
-#     theme_minimal() +
-#     theme(
-#       axis.text = element_text(size = 10),
-#       axis.title = element_text(size = 10),
-#     ),
-#   tooltip = c("y")
-# )
-# # 
-# ggplotly(
-#   ggplot(distdf, aes(x = dist, group = group)) +
-#     geom_histogram(
-#       alpha = 0.5, binwidth = 10,
-#       center = 5, position = "identity"
-#     ) +
-#     labs(
-#       x = "\nDistance (m)",
-#       y = "Count\n"
-#     ) +
-#     scale_x_continuous(breaks=seq(0,200,10)) +
-#     theme_minimal() +
-#     theme(
-#       axis.text = element_text(size = 10),
-#       axis.title = element_text(size = 10),
-#     ),
-#   tooltip = c("y")
-# ) %>%
-#   layout(legend = list(
-#     orientation = "h"
-#   ))
+# Extract the row and column indices
+ID <- rownames(indices)
+traps_ID <- indices[, 2]
+
+# Create a dataframe with the results
+captures <- data.frame(ID, trap = traps_ID) %>%
+  arrange(ID)
+
+save(distdf,prop,captures,file="data/CH2_2.RData")
+

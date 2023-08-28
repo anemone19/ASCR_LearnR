@@ -4,11 +4,11 @@ output: learnr::tutorial
 runtime: shiny_prerendered
 ---
 
-```{r setup2, include=FALSE}
+```{r setup, include=FALSE}
 # NB if you want to run the Chapter on its own, remove the number after setup in the chunk name and uncomment code below 
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
-#source("RScripts/Chapter2_Setup.R")
+source("RScripts/PROBD_Setup.R")
 ```
 
 ## 2 Probability of detection
@@ -27,9 +27,11 @@ In the Cape Peninsula of South Africa, this nifty little frog lives in leaf litt
 knitr::include_graphics("images/capemossfrog1.jpeg")
 ```
 
-Let's imagine we want to estimate this frog population's abundance.  We place eight microphones throughout a patch of its habitat (see the arrangement below). Let's further imagine that we know the locations of the frogs in that patch (click the "Reveal Frogs" button) and that they each made one call. We may or may not detect (record) each of the calls made, and our microphones can detect multiple calls - click the "Survey!" button to see the resulting data collected.
+Let's imagine we want to estimate this frog population's abundance.  We place eight microphones throughout a patch of its habitat (see the arrangement below). Let's further imagine that we know the locations of the frogs in that patch (click the "Reveal Frogs" button) and that they each made one call. We may or may not detect (record) each of the calls made, and our microphones can detect multiple calls - click the "Survey!" button to see the resulting data collected. 
 
-The table below is a data frame consisting of [detection histories]{style="color:#668BA4;font-weight:bold;"}. Each row is a detection history of a call made and indicates at which microphone the call was recorded. An entry equal to "1" means that the call (i.e. row) was recorded at that microphone (i.e. column), and if not, the entry will be a zero. Click on one of the rows to show you the frog location and the microphones that detected the call. Below the detection history data, you'll also see the actual number of frogs ($N$), an estimate of the overall probability of detection ($p^*$) and an estimate of abundance that was calculated as follows:
+The table below is a data frame consisting of [detection histories]{style="color:#668BA4;font-weight:bold;"}. Each row is a detection history of a call made and indicates at which microphone the call was recorded. An entry equal to "1" means that the call (i.e. row) was recorded at that microphone (i.e. column), and if not, the entry will be a zero. Click on one of the rows to show you the frog location and the microphones that detected the call. To get back to the original plot, just unclick the row.
+
+Below the detection history data, you'll also see the actual number of frogs ($N$), an estimate of the overall probability of detection ($p^*$) and an estim ate of abundance that was calculated as follows:
 
 $$
 \text{Estimate of N } = \frac{\text{number of detected frogs}}{p^*}
@@ -77,73 +79,12 @@ fluidRow(column(
 ```{r, context="server",echo=FALSE}
 # Initial plot and empty dataframe
 
-output$frogPopPlot <- renderPlot({
-  ggplot() +
-    geom_image(data = trapdf, aes(x = x, y = y, image = micro_image), size = 0.3) +
-    xlim(-50, 150) +
-    ylim(-50, 150) +
-    theme_minimal() +
-    theme(
-      legend.position = "top",
-      legend.title = element_blank(),
-      panel.background = element_rect(fill = "#c1e0cb"),
-      axis.title = element_blank(),
-      axis.text = element_blank(),
-      axis.ticks = element_blank(),
-      panel.grid.minor = element_blank(),
-      panel.grid.major = element_blank()
-    )
-})
-
-output$captHistData <- DT::renderDT({
-  empty_dat <- matrix(nrow = 10, ncol = 9)
-  colnames(empty_dat) <- paste0("M", 1:9)
-
-  datatable(empty_dat,
-    rownames = TRUE,
-    class = "cell-border",
-    escape = FALSE,
-    extensions = "Buttons",
-    selection = "single",
-    options = list(dom = "t", ordering = F)
-  )
-})
-
-# metrics
-
-output$trueN <- shinydashboard::renderValueBox({
-  N <- 0
-  shinydashboard::valueBox(N, "True number of calls")
-})
-
-output$estN <- shinydashboard::renderValueBox({
-  shinydashboard::valueBox(0, "Estimated number of calls")
-})
-
-output$probD <- shinydashboard::renderValueBox({
-  shinydashboard::valueBox(0, "Overall probability of detection")
-})
-
-
-# Create a reactive dataframe to store locations of frogs
-points <- reactiveVal(data.frame(x = numeric(0), y = numeric(0)))
-cpt_rv <- reactiveVal(NULL)
-
-# Add frogs when the addBtn is clicked
-observeEvent(input$addBtn, {
-  temppop <- sim.popn(D = 5, expand.grid(x = c(0, 100), y = c(0, 100)), buffer = 50)
-  popdf <- data.frame(temppop)
-
-  points(temppop)
-
-  # Render new plot with frogs
   output$frogPopPlot <- renderPlot({
-    ggplot(points(), aes(x = x, y = y)) +
-      geom_image(image = frog_image, colour = "#8A3A0D", size = 0.09) +
-      geom_image(data = trapdf, aes(x = x, y = y, image = micro_image), size = 0.25) +
+    ggplot() +
+      geom_image(data = trapdf, aes(x = x, y = y, image = micro_image), size = 0.3) +
       xlim(-50, 150) +
       ylim(-50, 150) +
-      geom_text(aes(label = rownames(points())), vjust = 0.5, hjust = 0.5, colour = "white", size = 4, fontface = "bold") +
+      theme_minimal() +
       theme(
         legend.position = "top",
         legend.title = element_blank(),
@@ -155,231 +96,367 @@ observeEvent(input$addBtn, {
         panel.grid.major = element_blank()
       )
   })
-
-  output$trueN <- shinydashboard::renderValueBox({
-    N <- nrow(points())
-    shinydashboard::valueBox(N, "Number of calls")
-  })
-})
-
-
-# Add points when the button is clicked
-observeEvent(input$detBtn, {
-  if (is.null(points()) || nrow(points()) == 0) {
-    # Display an error if points are empty
-    showModal(modalDialog(
-      title = "Oops!",
-      "Please add frogs before surveying!",
-      easyClose = TRUE
-    ))
-  } else {
-    cpt <- sim.capthist(det_array,
-      detectpar = list(g0 = 1, sigma = 20),
-      noccasions = 1,
-      popn = points(), renumber = FALSE
+  
+  output$captHistData <- DT::renderDT({
+    empty_dat <- matrix(nrow = 10, ncol = 9)
+    colnames(empty_dat) <- paste0("M", 1:9)
+    
+    datatable(empty_dat,
+              rownames = TRUE,
+              class = "cell-border",
+              escape = FALSE,
+              extensions = "Buttons",
+              selection = "single",
+              options = list(dom = "t", ordering = F)
     )
-
-    cpt_rv(cpt) # add to reactive dataframe for use outside observe
-
-    prob_hist <- matrix(NA, nrow = dim(cpt)[1], ncol = dim(cpt)[3])
-    rownames(prob_hist) <- names(cpt[, , 1])
-
-    for (i in 1:9) {
-      prob_hist[, i] <- cpt[, , i]
-    }
-
-    # # Calculate probabilities
-    # prob_hist <- matrix(NA, nrow = nrow(points()), ncol = nrow(trapdf))
-    # for (i in 1:nrow(trapdf)) {
-    #   prob_hist[, i] <- calculate_prob_succ(points(), trapdf[i, ])
-    # }
-
-    det_ind <- as.data.frame(prob_hist)
-    rownames(det_ind) <- paste("Frog", rownames(det_ind))
-    colnames(det_ind) <- paste("M", 1:9)
-    # det_ind <- det_ind[rowSums(det_ind[, 1:8]) > 0, ]
-
-    output$captHistData <- DT::renderDT({
-      det_ind %>%
-        DT::datatable(
-          rownames = TRUE,
-          class = "cell-border",
-          escape = FALSE,
-          extensions = "Buttons",
-          selection = "single",
-          options = list(dom = "t", ordering = F)
-        ) %>%
-        formatStyle(0, target = "row", color = "black", lineHeight = "50%") %>%
-        formatStyle(0, width = "20%")
-    })
-
-
-    # Render the plot
+  })
+  
+  # metrics
+  
+  output$trueN <- shinydashboard::renderValueBox({
+    N <- 0
+    shinydashboard::valueBox(N, "True number of calls")
+  })
+  
+  output$estN <- shinydashboard::renderValueBox({
+    shinydashboard::valueBox(0, "Estimated number of calls")
+  })
+  
+  output$probD <- shinydashboard::renderValueBox({
+    shinydashboard::valueBox(0, "Overall probability of detection")
+  })
+  
+  
+  # Create a reactive dataframe to store locations of frogs
+  points <- reactiveVal(data.frame(x = numeric(0), y = numeric(0)))
+  cpt_rv <- reactiveVal(NULL)
+  
+  # Add frogs when the addBtn is clicked
+  observeEvent(input$addBtn, {
+    temppop <- sim.popn(D = 5, expand.grid(x = c(0, 100), y = c(0, 100)), buffer = 50)
+    popdf <- data.frame(temppop)
+    
+    points(temppop) # add points to reactive dataframe for use outside observeEvent
+    
+    # Render new plot with frogs
     output$frogPopPlot <- renderPlot({
-      det_dat <- points() %>%
-        mutate(
-          det = ifelse(row_number() %in% rownames(cpt_rv()), "Detected", "Not Detected"),
-          num = row_number()
-        )
-
-      ggplot(det_dat) +
-        geom_image(aes(x = x, y = y, colour = det, image = frog_image), size = 0.09) +
+      ggplot(points(), aes(x = x, y = y)) +
+        geom_image(image = frog_image, colour = "#8A3A0D", size = 0.09) +
         geom_image(data = trapdf, aes(x = x, y = y, image = micro_image), size = 0.25) +
-        geom_text(aes(x = x, y = y, label = num), vjust = 0.5, hjust = 0.5, colour = "white", size = 4, fontface = "bold") +
-        scale_color_manual(values = c(
-          "Detected" = "darkgreen",
-          "Not Detected" = "darkred"
-        )) +
         xlim(-50, 150) +
         ylim(-50, 150) +
+        geom_text(aes(label = rownames(points())), vjust = 0.5, hjust = 0.5, colour = "white", size = 4, fontface = "bold") +
         theme(
-          legend.position = "bottom",
+          legend.position = "top",
           legend.title = element_blank(),
           panel.background = element_rect(fill = "#c1e0cb"),
           axis.title = element_blank(),
           axis.text = element_blank(),
           axis.ticks = element_blank(),
           panel.grid.minor = element_blank(),
-          panel.grid.major = element_blank(),
-          legend.text = element_text(size = 12)
+          panel.grid.major = element_blank()
         )
     })
-
+    
     output$trueN <- shinydashboard::renderValueBox({
       N <- nrow(points())
+      shinydashboard::valueBox(N, "Number of calls")
+    })
+  })
+  
+  
+  # Create a reactive dataframe to for capthist dataframe
+  capthist <- reactiveVal(NULL)
+  
+  # Add points when the button is clicked
+  observeEvent(input$detBtn, {
+    if (is.null(points()) || nrow(points()) == 0) {
+      # Display an error if points are empty
+      showModal(modalDialog(
+        title = "Oops!",
+        "Please add frogs before surveying!",
+        easyClose = TRUE
+      ))
+    } else {
+      # simulate capture history using points() dataframe, current frog pop
+      cpt <- sim.capthist(det_array,
+                          detectpar = list(g0 = 1, sigma = 20),
+                          noccasions = 1,
+                          popn = points(), renumber = FALSE
+      )
+      
+      cpt_rv(cpt) # add to reactive dataframe for use outside observeEvent
+      
+      prob_hist <- matrix(NA, nrow = dim(cpt)[1], ncol = dim(cpt)[3])
+      rownames(prob_hist) <- names(cpt[, , 1])
+      
+      for (i in 1:9) {
+        prob_hist[, i] <- cpt[, , i]
+      }
+      
+      det_ind <- as.data.frame(prob_hist)
+      rownames(det_ind) <- paste("Frog", rownames(det_ind))
+      colnames(det_ind) <- paste("M", 1:9)
+      capthist(prob_hist)
+      
+      output$captHistData <- DT::renderDT({
+        det_ind %>%
+          DT::datatable(
+            rownames = TRUE,
+            class = "cell-border",
+            escape = FALSE,
+            extensions = "Buttons",
+            selection = "single",
+            options = list(dom = "t", ordering = F)
+          ) %>%
+          formatStyle(0, target = "row", color = "black", lineHeight = "50%") %>%
+          formatStyle(0, width = "20%")
+      })
+      
+      
+      # Render the plot
+      output$frogPopPlot <- renderPlot({
+        det_dat <- points() %>%
+          mutate(
+            det = ifelse(row_number() %in% rownames(cpt_rv()), "Detected", "Not Detected"),
+            num = row_number()
+          )
+        
+        ggplot(det_dat) +
+          geom_image(aes(x = x, y = y, colour = det, image = frog_image), size = 0.09) +
+          geom_image(data = trapdf, aes(x = x, y = y, image = micro_image), size = 0.25) +
+          geom_text(aes(x = x, y = y, label = num), vjust = 0.5, hjust = 0.5, colour = "white", size = 4, fontface = "bold") +
+          scale_color_manual(values = c(
+            "Detected" = "darkgreen",
+            "Not Detected" = "darkred"
+          )) +
+          xlim(-50, 150) +
+          ylim(-50, 150) +
+          theme(
+            legend.position = "bottom",
+            legend.title = element_blank(),
+            panel.background = element_rect(fill = "#c1e0cb"),
+            axis.title = element_blank(),
+            axis.text = element_blank(),
+            axis.ticks = element_blank(),
+            panel.grid.minor = element_blank(),
+            panel.grid.major = element_blank(),
+            legend.text = element_text(size = 12)
+          )
+      })
+      
+      output$trueN <- shinydashboard::renderValueBox({
+        N <- nrow(points())
+        shinydashboard::valueBox(N, "True number of calls")
+      })
+      
+      output$estN <- shinydashboard::renderValueBox({
+        p_star <- 1 - (1 - mean(prob_hist))^nrow(det_array)
+        Nhat <- nrow(det_ind) / p_star
+        shinydashboard::valueBox(round(Nhat), "Estimated number of calls")
+      })
+      
+      output$probD <- shinydashboard::renderValueBox({
+        p_star <- 1 - (1 - mean(prob_hist))^nrow(det_array)
+        shinydashboard::valueBox(round(p_star, 2), "Overall probability of detection")
+      })
+    }
+  })
+  
+  # when row selected, show frog and microphone which detected call 
+  observeEvent(input$captHistData_rows_selected, {
+    selected_row <- input$captHistData_rows_selected
+    frogID <- rownames(capthist())[selected_row]
+    
+    # which microphone detected 
+    micro_index <- which(capthist()[selected_row,] == 1)
+    micro_df <- trapdf[c(micro_index),]
+    
+    if (length(input$captHistData_rows_selected)){
+      
+    }
+    output$frogPopPlot <- renderPlot({
+      if (length(input$captHistData_rows_selected)){
+        det_dat <- points() %>%
+          mutate(
+            det = ifelse(row_number() %in% rownames(cpt_rv()), "Detected", "Not Detected"),
+            num = row_number()
+          ) %>%
+          filter(num == frogID)
+        
+        ggplot(det_dat) +
+          geom_image(aes(x = x, y = y, colour = det, image = frog_image), size = 0.09) +
+          geom_image(data = trapdf, aes(x = x, y = y, image = micro_image), size = 0.25) +
+          geom_image(data = micro_df, aes(x = x, y = y, image = micro_image), size = 0.25, colour = "darkgreen") +
+          geom_text(aes(x = x, y = y, label = num), vjust = 0.5, hjust = 0.5, colour = "white", size = 4, fontface = "bold") +
+          scale_color_manual(values = c(
+            "Detected" = "darkgreen",
+            "Not Detected" = "darkred"
+          )) +
+          xlim(-50, 150) +
+          ylim(-50, 150) +
+          theme(
+            legend.position = "bottom",
+            legend.title = element_blank(),
+            panel.background = element_rect(fill = "#c1e0cb"),
+            axis.title = element_blank(),
+            axis.text = element_blank(),
+            axis.ticks = element_blank(),
+            panel.grid.minor = element_blank(),
+            panel.grid.major = element_blank(),
+            legend.text = element_text(size = 12)
+          )
+      } else {
+        det_dat <- points() %>%
+          mutate(
+            det = ifelse(row_number() %in% rownames(cpt_rv()), "Detected", "Not Detected"),
+            num = row_number()
+          )
+        
+        ggplot(det_dat) +
+          geom_image(aes(x = x, y = y, colour = det, image = frog_image), size = 0.09) +
+          geom_image(data = trapdf, aes(x = x, y = y, image = micro_image), size = 0.25) +
+          geom_text(aes(x = x, y = y, label = num), vjust = 0.5, hjust = 0.5, colour = "white", size = 4, fontface = "bold") +
+          scale_color_manual(values = c(
+            "Detected" = "darkgreen",
+            "Not Detected" = "darkred"
+          )) +
+          xlim(-50, 150) +
+          ylim(-50, 150) +
+          theme(
+            legend.position = "bottom",
+            legend.title = element_blank(),
+            panel.background = element_rect(fill = "#c1e0cb"),
+            axis.title = element_blank(),
+            axis.text = element_blank(),
+            axis.ticks = element_blank(),
+            panel.grid.minor = element_blank(),
+            panel.grid.major = element_blank(),
+            legend.text = element_text(size = 12)
+          )
+      }
+    })
+    
+  })
+
+  
+  # Reset to initial state when "Start Over" button is clicked
+  observeEvent(input$startOverBtn, {
+    points(data.frame(x = numeric(0), y = numeric(0)))
+    
+    output$frogPopPlot <- renderPlot({
+      ggplot() +
+        geom_image(data = trapdf, aes(x = x, y = y, image = micro_image), size = 0.25) +
+        xlim(-50, 150) +
+        ylim(-50, 150) +
+        theme(
+          legend.position = "top",
+          legend.title = element_blank(),
+          panel.background = element_rect(fill = "#c1e0cb"),
+          axis.title = element_blank(),
+          axis.text = element_blank(),
+          axis.ticks = element_blank(),
+          panel.grid.minor = element_blank(),
+          panel.grid.major = element_blank()
+        )
+    })
+    
+    output$simPlot <- renderPlot({
+      NULL
+    })
+    
+    output$captHistData <- DT::renderDT({
+      empty_dat <- matrix(nrow = 10, ncol = 9)
+      colnames(empty_dat) <- paste0("M", 1:9)
+      
+      datatable(empty_dat,
+                rownames = TRUE,
+                class = "cell-border",
+                escape = FALSE,
+                extensions = "Buttons",
+                selection = "single",
+                options = list(dom = "t", ordering = F)
+      )
+    })
+    
+    output$trueN <- shinydashboard::renderValueBox({
+      N <- 0
       shinydashboard::valueBox(N, "True number of calls")
     })
-
+    
     output$estN <- shinydashboard::renderValueBox({
-      p_star <- 1 - (1 - mean(prob_hist))^nrow(det_array)
-      Nhat <- nrow(det_ind) / p_star
-      shinydashboard::valueBox(round(Nhat), "Estimated number of calls")
+      shinydashboard::valueBox(0, "Estimated number of calls")
     })
-
+    
     output$probD <- shinydashboard::renderValueBox({
-      p_star <- 1 - (1 - mean(prob_hist))^nrow(det_array)
-      shinydashboard::valueBox(round(p_star, 2), "Overall probability of detection")
+      shinydashboard::valueBox(0, "Overall probability of detection")
     })
-  }
-})
-
-# Reset to initial state when "Start Over" button is clicked
-observeEvent(input$startOverBtn, {
-  points(data.frame(x = numeric(0), y = numeric(0)))
-
-  output$frogPopPlot <- renderPlot({
-    ggplot() +
-      geom_image(data = trapdf, aes(x = x, y = y, image = micro_image), size = 0.25) +
-      xlim(-50, 150) +
-      ylim(-50, 150) +
-      theme(
-        legend.position = "top",
-        legend.title = element_blank(),
-        panel.background = element_rect(fill = "#c1e0cb"),
-        axis.title = element_blank(),
-        axis.text = element_blank(),
-        axis.ticks = element_blank(),
-        panel.grid.minor = element_blank(),
-        panel.grid.major = element_blank()
-      )
   })
-
-  output$simPlot <- renderPlot({
-    NULL
-  })
-
-  output$captHistData <- DT::renderDT({
-    empty_dat <- matrix(nrow = 10, ncol = 9)
-    colnames(empty_dat) <- paste0("M", 1:9)
-
-    datatable(empty_dat,
-      rownames = TRUE,
-      class = "cell-border",
-      escape = FALSE,
-      extensions = "Buttons",
-      selection = "single",
-      options = list(dom = "t", ordering = F)
-    )
-  })
-
-  output$trueN <- shinydashboard::renderValueBox({
-    N <- 0
-    shinydashboard::valueBox(N, "True number of calls")
-  })
-
-  output$estN <- shinydashboard::renderValueBox({
-    shinydashboard::valueBox(0, "Estimated number of calls")
-  })
-
-  output$probD <- shinydashboard::renderValueBox({
-    shinydashboard::valueBox(0, "Overall probability of detection")
-  })
-})
-
-# Simualtion
-
-observeEvent(input$repeatBtn, {
-  if (is.null(points()) || nrow(points()) == 0) {
-    # Display an error if points are empty
-    showModal(modalDialog(
-      title = "Oops!",
-      "Please add frogs before surveying!",
-      easyClose = TRUE
-    ))
-  } else {
-    showModal(modalDialog("Surveying!", footer = NULL))
-    simulate_surveys <- function(points, micro, nsims = 1000) {
-      nhats <- rep(0, nsims)
-      for (i in 1:nsims) {
-        # capture histories
-        CH <- sim.capthist(micro,
-          detectpar = list(g0 = 1, sigma = 20),
-          noccasions = 1,
-          popn = points, renumber = FALSE
-        )
-
-        CH_combined <- matrix(NA, nrow = dim(CH)[1], ncol = dim(CH)[3])
-        rownames(CH_combined) <- names(CH[, , 1])
-
-        for (j in 1:9) {
-          CH_combined[, j] <- CH[, , j]
+  
+  # Simualtion
+  
+  observeEvent(input$repeatBtn, {
+    if (is.null(points()) || nrow(points()) == 0) {
+      # Display an error if points are empty
+      showModal(modalDialog(
+        title = "Oops!",
+        "Please add frogs before surveying!",
+        easyClose = TRUE
+      ))
+    } else {
+      showModal(modalDialog("Surveying!", footer = NULL))
+      simulate_surveys <- function(points, micro, nsims = 1000) {
+        nhats <- rep(0, nsims)
+        for (i in 1:nsims) {
+          # capture histories
+          CH <- sim.capthist(micro,
+                             detectpar = list(g0 = 1, sigma = 20),
+                             noccasions = 1,
+                             popn = points, renumber = FALSE
+          )
+          
+          CH_combined <- matrix(NA, nrow = dim(CH)[1], ncol = dim(CH)[3])
+          rownames(CH_combined) <- names(CH[, , 1])
+          
+          for (j in 1:9) {
+            CH_combined[, j] <- CH[, , j]
+          }
+          
+          ave <- 1 - (1 - mean(CH_combined))^nrow(micro)
+          Nhat <- nrow(CH_combined) / ave
+          
+          nhats[i] <- Nhat
         }
-
-        ave <- 1 - (1 - mean(CH_combined))^nrow(micro)
-        Nhat <- nrow(CH_combined) / ave
-
-        nhats[i] <- Nhat
+        
+        return(list(nhats = nhats, true = nrow(points())))
       }
-
-      return(list(nhats = nhats, true = nrow(points())))
+      
+      data5000 <- suppressWarnings(simulate_surveys(points(), det_array))
+      
+      output$simPlot <- renderPlotly({
+        ggplotly(
+          ggplot(data.frame(nhats = data5000$nhats), aes(x = nhats)) +
+            geom_histogram(bins = 10, fill = "#97cba9", colour = "#668ba4") +
+            geom_vline(aes(colour = "True_Number", xintercept = data5000$true)) +
+            scale_color_manual(name = "", values = c(True_Number= "#C86F35")) +
+            theme_minimal() +
+            labs(
+              x = "\nAbundance estimates",
+              y = "Count\n"
+            ) +
+            theme(
+              axis.text = element_text(size = 10),
+              axis.title = element_text(size = 10)
+            ),
+          tooltip = c("y"), showlegend = F
+        ) %>%
+          layout(legend = list(
+            orientation = "h"
+          ))
+      })
+      removeModal()
     }
-
-    data5000 <- suppressWarnings(simulate_surveys(points(), det_array))
-
-    output$simPlot <- renderPlotly({
-      ggplotly(
-        ggplot(data.frame(nhats = data5000$nhats), aes(x = nhats)) +
-          geom_histogram(bins = 10, fill = "#97cba9", colour = "#668ba4") +
-          geom_vline(aes(colour = "True_Number", xintercept = data5000$true)) +
-          scale_color_manual(name = "", values = c(True_Number= "#C86F35")) +
-          theme_minimal() +
-          labs(
-            x = "\nAbundance estimates",
-            y = "Count\n"
-          ) +
-          theme(
-            axis.text = element_text(size = 10),
-            axis.title = element_text(size = 10)
-          ),
-        tooltip = c("y"), showlegend = F
-      ) %>%
-        layout(legend = list(
-          orientation = "h"
-        ))
-    })
-    removeModal()
-  }
-})
+  })
 ```
 
 <br/>
@@ -392,47 +469,142 @@ So, what's happening here? The basic CR model assumes constant detection probabi
 
 ### Distance-dependent detection
 
-Let's focus on one hypothetical population of 25 frogs we've surveyed once. We know the locations of all the frogs in our population, so we can measure the straight line distance between each frog and each microphone.
+Let's focus on one hypothetical population of 25 frogs we've surveyed once. We know the locations of all the frogs in our population, so we can measure the straight line distance between each frog and each microphone. 
 
-```{r onePopPlot, echo=FALSE, fig.align='center', out.width="85%"}
-# ggplot of of frog population
+Click on any of the frogs below to see the Euclidean distances to each microphone which will be displayed above the relevant microphone. For example's sake, we'll say that we've measured distance in meters. For frogs that were detected, the distances to the microphones that picked up their call will be in green. 
 
-ggplot(det_dat) +
-  geom_image(aes(x = x, y = y, colour = det, image = frog_image), size = 0.09) +
-  geom_image(data = det_array, aes(x = x, y = y, image = micro_image), size = 0.2) +
-  geom_text(aes(x = x, y = y, label = num),
-    vjust = 0.5, hjust = 0.5, colour = "white",
-    size = 2, fontface = "bold"
-  ) +
-  labs(
-    x ="\nX",
-    y = "Y\n"
-  ) +
-  scale_color_manual(values = c(
-    "Detected" = "darkgreen",
-    "Not Detected" = "darkred"
-  )) +
-  theme(
-    legend.position = "top",
-    legend.title = element_blank(),
-    panel.background = element_rect(fill = "#c1e0cb"),
-    legend.text = element_text(size = 7)
-  ) +
-  scale_x_continuous(n.breaks = 15) +
-  scale_y_continuous(n.breaks = 10)
-
-br()
+```{r UI3, echo=FALSE}
+fluidPage(
+  fluidRow(
+    column(6, plotOutput("distPlot",click = "plot_click")),
+    column(6, plotOutput("isoFrogPlot"))
+  )
+)
 ```
 
-We can plot a histogram of these distances and inspect the frequency of frogs located within certain distance intervals (or bins). For example's sake, we'll say that we've measured distance in meters. A distance bin is the span of a bar - the first distance bin is from 0 to 10 meters, the second is from 10 to 20 meters and so forth. If you hover over the bars, the frequency of frogs, i.e. how many frogs are within that distance bin, is shown.
+```{r, context="server",echo=FALSE}
+ output$distPlot <- renderPlot({
+    ggplot(det_dat) +
+      geom_image(aes(x = x, y = y, colour = det, image = frog_image), size = 0.09) +
+      geom_image(data = det_array, aes(x = x, y = y, image = micro_image), size = 0.2) +
+      geom_text(aes(x = x, y = y, label = num),
+        vjust = 0.5, hjust = 0.5, colour = "white",
+        size = 3.5, fontface = "bold"
+      ) +
+      labs(
+        x = "\nX",
+        y = "Y\n"
+      ) +
+      scale_color_manual(values = c(
+        "Detected" = "darkgreen",
+        "Not Detected" = "darkred"
+      )) +
+      theme(
+        legend.position = "top",
+        legend.title = element_blank(),
+        panel.background = element_rect(fill = "#c1e0cb"),
+        legend.text = element_text(size = 7)
+      ) +
+      scale_x_continuous(n.breaks = 15) +
+      scale_y_continuous(n.breaks = 10)
+  })
 
-One frogs is in our first distance bin (0 to 10 meters), five in the second, twelve in the third and so forth. As is, it's not an extremely interesting graph, but if we add the amount of frogs we detected within each distance bin (Click 'Add detections'), it starts to become a bit more informative.
+  frog_row <- reactiveVal()
+
+  # click to generate density plot
+  observeEvent(input$plot_click, {
+    frog_row <- nearPoints(det_dat, input$plot_click, maxpoints = 1)
+
+    # output$text <- renderPrint({
+    #   nrow(frog_row)
+    # })
+
+    baseplot <- ggplot(frog_row) +
+      geom_image(aes(x = x, y = y, colour = det, image = frog_image), size = 0.09) +
+      geom_image(data = det_array, aes(x = x, y = y, image = micro_image), size = 0.2) +
+      geom_text(aes(x = x, y = y, label = num),
+        vjust = 0.5, hjust = 0.5, colour = "white",
+        size = 3.5, fontface = "bold"
+      ) +
+      labs(
+        x = "\nX",
+        y = "Y\n"
+      ) +
+      scale_color_manual(values = c(
+        "Detected" = "darkgreen",
+        "Not Detected" = "darkred"
+      )) +
+      theme(
+        legend.position = "top",
+        legend.title = element_blank(),
+        panel.background = element_rect(fill = "#c1e0cb"),
+        legend.text = element_text(size = 7)
+      ) +
+      xlim(-50, 150) +
+      ylim(-50, 150)
+
+    if (nrow(frog_row) == 0) {
+      showModal(modalDialog(
+        title = "Oops!",
+        "Please click on a frog :)",
+        easyClose = TRUE
+      ))
+    } else {
+      output$isoFrogPlot <- renderPlot({
+        if (frog_row$det == "Detected") {
+          # Extract trap IDs
+          micro_index <- captures$trap[captures$ID == frog_row$num]
+
+          # Filter trapdf to include only micro_index rows
+          micro_trapdf <- trapdf[micro_index, ]
+
+          # Create a base plot
+          plot <- baseplot
+
+          # Iterate through micro_index and add annotations to the plot
+          for (i in seq_along(micro_index)) {
+            plot <- plot +
+              add_annotation(micro_trapdf[i, ], frog_row[, 1:2], det = "yes")
+          }
+
+          # Find indices of rows not in micro_index
+          rest_index <- setdiff(rownames(trapdf), rownames(micro_trapdf))
+
+          # Iterate through rest_index and add annotations to the plot
+          for (i in seq_along(rest_index)) {
+            plot <- plot +
+              add_annotation(trapdf[rest_index[i], ], frog_row[, 1:2])
+          }
+          
+          plot 
+          
+        } else {
+          annotations <- list()
+
+          for (i in 1:9) {
+            annotations[[i]] <- add_annotation(trapdf[i, ], frog_row[, 1:2])
+          }
+
+          baseplot + annotations
+        }
+      })
+    }
+  })
+```
+
+<br/>
+
+We can plot a histogram of these distances (all 225 of them) and inspect the frequency of distances within certain intervals (or bins). A distance bin is the span of a bar - the first distance bin is from 0 to 10 meters, the second is from 10 to 20 meters and so forth. If you hover over the bars, the frequency of frogs, i.e. how many of the distances measured fall within that distance bin, is shown. 
+
+One frog is in our first distance bin (0 to 10 meters), five in the second, twelve in the third and so forth. As is, it's not an extremely interesting graph. But if we add the distances between detected frogs and the microphones they were detected at, it starts to become a bit more informative (Click 'Add detections').
+
+Let's make sure we understand this, every distance between every frog and a microphone is measured and then included in the histogram below. Then when we add the detections, the distances between detected frogs and the relevant microphone or microphones - that is, the green distances for all the frogs in the plot above. 
 
 ```{r UI2, echo=FALSE}
 fluidRow(
   plotlyOutput("histDistPlot"),
   conditionalPanel(
-    "input.propBtn%2 == 1",
+    "input.propBtn%2 == 1 && !input.hide",
     plotlyOutput("propPlot")
   )
 )
@@ -494,6 +666,11 @@ observeEvent(input$allFrogs, {
 )
 
   })
+  
+      #   output$propPlot <- renderPlotly({
+      #   NULL
+      # })
+        
 })
 # Add detections
 
@@ -531,6 +708,10 @@ observeEvent(input$addDet, {
           orientation = "h"
         ))
   })
+  
+      #   output$propPlot <- renderPlotly({
+      #   NULL
+      # })
 })
 
 observeEvent(input$propBtn, {

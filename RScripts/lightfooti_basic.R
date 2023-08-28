@@ -10,6 +10,7 @@ library(secr)
 # get data from ascr package 
 lightfooti_data<-ascr::lightfooti
 
+
 # Convert binary capture history data to format required for data function 
 
 capt_single <- lightfooti_data$capt$bincapt

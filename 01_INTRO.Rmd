@@ -9,17 +9,6 @@ runtime: shiny_prerendered
 
 # NB if you want to run the chapter on its own, remove the number after setup in the chunk name
 
-# theme <- bs_theme(
-#   # Controls the default grayscale palette
-#   bg = "#202123", fg = "#B8BCC2",
-#   # Controls the accent (e.g., hyperlink, button, etc) colors
-#   primary = "#EA80FC", secondary = "#48DAC6",
-#   base_font = c("Grandstander", "sans-serif"),
-#   code_font = c("Courier", "monospace"),
-#   heading_font = "'Helvetica Neue', Helvetica, sans-serif",
-#   # Can also add lower-level customization
-#   "input-border-color" = "#EA80FC"
-# )
 
 ```
 
@@ -29,7 +18,7 @@ Understanding wildlife populations is super important when it comes to ecologica
   
 ```{r,echo=FALSE,out.width="75%",fig.align="center"} 
 
-knitr::include_graphics("images/Mind Map.png") 
+knitr::include_graphics("images/est_anim.png") 
 ```
 
 The last two methods, [distance sampling]{style="color:#668BA4;font-weight:bold;"} (DS) and [capture-recapture]{style="color:#668BA4;font-weight:bold;"} methods (CR), are very popular methods. DS typically relies on spotting animals, whereas CR is an analytical framework that can be used in conjunction with a variety of methods for capturing or detecting animals, broadly referred to here as [sampling or survey techniques]{style="color:#668BA4;font-weight:bold;"}. These survey techniques record captures and recaptures of animals and historically, required physically capturing animals (hence the terminology). In recent decades, however, other cool survey techniques such as camera trapping and DNA sampling have been developed and people have started to use the terms detections and redetections as well. Although which word pair is more appropriate depends on the survey technique, people tend to use the terms interchangeably.  

@@ -9,7 +9,7 @@ runtime: shiny_prerendered
 
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
-# source("RScripts/Chapter3_Setup.R")
+#source("RScripts/Chapter3_Setup.R")
 
 ```
 
@@ -92,7 +92,7 @@ chooseSliderSkin("Flat", color = "#ED5565")
 sidebarLayout(
   sidebarPanel(
     selectInput("detFunc", "Select Function:",
-      choices = c("halfnormal", "Hazard Rate", "Exponential", "Uniform", "Hazard halfnormal")
+      choices = c("Halfnormal", "Hazard Rate", "Exponential", "Uniform", "Hazard Halfnormal")
     ),
     sliderInput("g0", "Set value of g0:", min = 0, max = 1, value = 1),
     sliderInput("sigma", "Set value for σ", min = 0, max = 20, value = 5),
@@ -102,7 +102,7 @@ sidebarLayout(
     )
   ),
   mainPanel(
-    plotOutput("detFuncPlot")
+    plotlyOutput("detFuncPlot")
   )
 )
 
@@ -110,7 +110,6 @@ sidebarLayout(
 
 ```{r, context="server",echo=FALSE}
 # Shiny Server
-
   observeEvent(input$detFunc == detfunctions[5], {
     updateSliderInput(
       session = session,
@@ -119,36 +118,44 @@ sidebarLayout(
       max = 5
     )
   }, ignoreInit = TRUE)
-
-output$detFuncPlot <- renderPlot({
-  if (input$detFunc == detfunctions[1]) {
-    y <- halfnormal(dist_seq, input$g0, input$sigma)
-  } else if (input$detFunc == detfunctions[2]) {
-    y <- hazard_rate(dist_seq, input$g0, input$sigma, input$z)
-  } else if (input$detFunc == detfunctions[3]) {
-    y <- exponential(dist_seq, input$g0, input$sigma)
-  } else if (input$detFunc == detfunctions[4]) {
-    y <- uniform(dist_seq, input$g0, input$sigma)
-  } else if (input$detFunc == detfunctions[5]) {
-    y <- hazard_halfnormal(dist_seq, input$g0, input$sigma)
-  }
-
-  # Create data frame
-  df <- data.frame(d = dist_seq, y = y)
-
-  # Plot
-  ggplot(df, aes(d, y)) +
-    geom_line(linewidth = 1, colour = "#97CBA9") +
-    labs(title = paste(input$detFunc, "Detection Function")) +
-    xlab("\nDistance") +
-    ylab("Detection probability\n") +
-    ylim(0, 1) +
-    theme_minimal() +
-    theme(
-      axis.title = element_text(size = 15),
-      plot.title = element_text(size = 20)
-    )
-})
+  
+  output$detFuncPlot <- renderPlotly({
+    if (input$detFunc == detfunctions[1]) {
+      y <- halfnormal(dist_seq, input$g0, input$sigma)
+    } else if (input$detFunc == detfunctions[2]) {
+      y <- hazard_rate(dist_seq, input$g0, input$sigma, input$z)
+    } else if (input$detFunc == detfunctions[3]) {
+      y <- exponential(dist_seq, input$g0, input$sigma)
+    } else if (input$detFunc == detfunctions[4]) {
+      y <- uniform(dist_seq, input$g0, input$sigma)
+    } else if (input$detFunc == detfunctions[5]) {
+      y <- hazard_halfnormal(dist_seq, input$g0, input$sigma)
+    }
+    
+    # Create data frame
+    df <- data.frame(Distance = dist_seq, Probability = y)
+    
+    # Create data frame
+    df <- data.frame(Distance = dist_seq, Probd = y)
+    df$Probability <- round(df$Probd,2) # just for ggplotly label
+    
+    # Plot
+    ggplotly(
+      ggplot(df, aes(Distance, Probd, label = Probability)) +
+        geom_line(linewidth = 0.7, colour = "#97CBA9") +
+        labs(title = paste(input$detFunc, "Detection Function")) +
+        xlab("\nDistance") +
+        ylab("Detection probability\n") +
+        ylim(0, 1) +
+        theme_minimal() +
+        theme(
+          axis.title = element_text(size = 10),
+          plot.title = element_text(size = 15)
+        ),
+      tooltip = c("Distance","label")
+    ) 
+    
+  })
 ```
 
 There are many other detection functions as well! If we think the relationship between detection probability and distance looks slightly different, we could specify a different detection function. For example, the hazard rate function includes an additional parameter which has an additional parameter, $z$. You can explore other detection functions by selecting from the dropdown list above.
