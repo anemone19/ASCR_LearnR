@@ -16,58 +16,58 @@ knitr::opts_chunk$set(echo = TRUE)
 
 **Buffer distance** is the minimum distance between detectors and the edge of the habitat mask. The distance should be large enough to plausibly include all detected animals. 
 
-**Calling density** is estimated when the detection unit is a call and refers to the number of calls per sqaure unit. 
+**Calling density** is estimated when the detection unit is a call and refers to the number of calls per square unit. 
 
-**Capture-recapture** is an analytic framework to estimate abundance and density of wildlife population which relies on captures (or detections) and recaptures (or redetections) of individuals in a population. The analytic framework can be applied to many different survey techniques. 
+**Capture-recapture** is an analytic framework to estimate the abundance and density of wildlife population, which relies on captures (or detections) and recaptures (or redetections) of individuals in a population. The analytic framework can be applied to many different survey techniques. 
 
-**Change in Ratio** methods infer animal abundance from observing changes in proportions of certain sub-classes of the wildlife population like ... . after removing a known amount of individuals from the population. 
+**Change in Ratio** methods infer animal abundance from observing changes in proportions of specific sub-classes of the wildlife population after removing a known amount of individuals from the population. 
 
-**Closed population** a group of individuals or entities within a defined area or system that remains constant over a specific period, meaning that no new members are added, and no existing members leave or die.
+**Closed population** is a group of individuals or entities within a defined area or system that remains constant over a specific period, meaning that no new members are added, and no existing members leave or die.
 
-**Constant (or homogenous) density** refers to when animal locations are evenly spread out throughout the survey region. 
+**Constant (or homogenous) density** is when animal locations are evenly spread throughout the survey region. 
 
 **Density** refers to the number of individuals within a certain area or volume. In the context of wildlife populations, it is typically used to describe the number of individuals per unit area.
 
-**Detection function** refers to the mathematical model used to describe the relationship between distance and detection probability, where distance is the distance between detectors and detected animal locations. 
+**Detection function** refers to the mathematical model that describes the relationship between distance and detection probability, where distance is the distance between detectors and detected animal locations. 
 
-**Detection histories** contain the detections and re-detections of calls across detector arrays. Usually contained in a dataframe with rows equal to the number of calls detected and a column for each detector.If a call was detected at a microphone, the corresponding enrty contains a "1" and if not, a zero.
+**Detection histories** contain the detections and re-detections of calls across detector arrays. Usually contained in a dataframe with rows equal to the number of calls detected and a column for each detector. If a call was detected at a microphone, the corresponding entry contains a "1" and, if not, a zero.
 
 **Detection unit** is what the aSCR survey records. It can either be a call, animal or group of animals. 
 
-**Distance sampling** is a statistical method used in ecology to estimate the abundance or density of a population by collecting data on the distances between observers and the individuals they detect.
+Distance sampling** is a statistical method used in ecology to estimate the abundance or density of a population by collecting data on the distances between observers and the individuals they detect.
 
-**Estimate** refers to a calculated value that is used to approximate an unknown population parameter based on sample data.  When studying a population, it is often impossible or impractical to collect data from every individual, so a subset, known a sample, is taken. Statistical estimation involves using information form this sample to make an educated guess or estimate about a population characteristic or parameter. 
+**Estimate** refers to a calculated value approximating an unknown population parameter based on sample data. When studying a population, collecting data from every individual is often impossible or impractical, so a subset, known as a sample, is taken. Statistical estimation involves using information from this sample to make an educated guess or estimate about a population characteristic or parameter. 
 
 **Group density** is estimated when the detection unit is a group of animals and refers to the number of groups per square unit. 
 
-**Habitat mask** is set of coordinates that form an area covering the detectors in an SCR survey. The extent of the mask is determined by the buffer distance. 
+**Habitat mask** is a set of coordinates that form an area covering the detectors in an SCR survey. The extent of the mask is determined by the buffer distance. 
 
-**Imperfect detection** is a widespread phenomenon in ecological studies and refers to when the probability of detection is less than one. In ecological surveys, it is almost always impossible to observe or detect all individuals of the populations due to either the specific sampling technique, human error or other factors. Imperfect detection can lead to biased or incomplete results and requires specialized statistical methods to account for the uncertainties introduced by the incomplete observations.
+**Imperfect detection** is a widespread phenomenon in ecological studies. It refers to when the probability of detection is less than one. In ecological surveys, it is almost always impossible to observe or detect all individuals of the populations due to either the specific sampling technique, human error or other factors. Imperfect detection can lead to biased or incomplete results and requires specialised statistical methods to account for the uncertainties introduced by incomplete observations.
 
-**Model** refers to a simplified representation or description of a real-world phenomenon or process. It is a mathematical or conceptual framework that is used to capture and understand the relationship, patterns and underlying structure in sample data. 
+**Model** is a simplified representation or description of a real-world phenomenon or process. It is a mathematical or conceptual framework used to capture and understand relationships, patterns and underlying structure in sample data. 
 
-**Non-constant (or inhomogenous) density** refers to when animal locations are NOT evenly spread out, but occur in regions of varying density across the survey region. 
+**Non-constant (or inhomogenous) density** refers to when animal locations are NOT evenly spread out but occur in regions of varying density across the survey region. 
 
-**Passive acoustic surveying** involves placing microphones or any kind of self-contained recording unit (also known as autonomous recording devices or ARUs for brevity), throughout a marine or terrestrial environment to record animal calls (sometimes called cues or vocalisations)
+**Passive acoustic surveying** involves placing microphones or any kind of self-contained recording unit (also known as autonomous recording devices or ARUs for brevity) throughout a marine or terrestrial environment to record animal calls (sometimes called cues or vocalisations)
 
-**Plot sampling** entails dividing up a landscape into sampling units such as plots (or quadrats) or strips and counting all individuals of the target species within the sampling units. 
+**Plot sampling** entails dividing a landscape into sampling units such as plots (or quadrats) or strips and counting all individuals of the target species within the sampling units. 
 
-**Probability of detection**  is probability of observing a detection unit. For example, the probability of hearing a call if call is the detection unit, or the probability of detecting and animal (or group) if animal (or group) is the detection unit. There are various kinds of detection probabilities in SCR surveys, even for a single kind of detection unit. For example, there is the probability that a single detector detects a detection unit, and the probability that any detector in an array detects a detection unit, (a larger probability, obviously), and the probability that a detector makes a detection GIVEN the location of the animal, and the probability that certain detectors detect a detection unit while others don't (the probability of a particular "detection history").
+**Probability of detection**  is the probability of observing a detection unit. The probability of hearing a call if the call is the detection unit or the probability of detecting an animal (or group) if the animal (or group) is the detection unit. There are various kinds of detection probabilities in SCR surveys, even for a single type of detection unit. For example, there is the probability that a single detector detects a detection unit ($p$) and the probability that any detector in an array detects a detection unit ($p^*$). 
 
-**Removal methods** rely on systematically removing groups of individual (i.e. samples) from the population and deriving abundance from the reduction in the amount of individuals removed over time. 
+**Removal methods** rely on systematically removing groups of individuals (i.e. samples) from the population and deriving abundance from the reduction in the number of individuals removed over time. 
 
 **Sample** refers to a subset of individuals, items, or observations collected from a larger group, known as the population. The purpose of creating a sample is to gather representative information about the population without having to study or analyse every single element within it. Samples are used to make inferences, draw conclusions, and estimate population parameters based on the observed characteristics of the sample. 
 
-**Self-contained recording unit**  is a type of sound recording device used in passive acoustic surveying that is designed to record animal vocalisations. It is typically designed to be left in the field for extended periods of time and may be powered by batteries or solar panels, are often equipped with weather-resistant and durable housing to protect against the elements and wildlife. 
+**Self-contained recording unit**  is a sound recording device used in passive acoustic surveying designed to record animal vocalisations. It is typically intended to be left in the field for extended periods. It may be powered by batteries or solar panels. It is often equipped with weather-resistant and durable housing to protect against the elements and wildlife. 
 
 **Signal strength** refers to the intensity or magnitude of the recorded acoustic signals emitted by individual animals. 
 
-**Spatial capture-recapture** (SCR) is a statistical model for estimating animal abundance and density from capture history data. SCR models combines a model for the distribution of animals in space with a model for detection probability. By jointly modelling these aspects, SCR produce reliable density estimates. 
+**Spatial capture-recapture** (SCR) is a statistical model for estimating animal abundance and density from capture history data. SCR models combine a model for the distribution of animals in space with a model for detection probability. By jointly modelling these aspects, SCR produces reliable density estimates. 
 
 **Spatial point pattern** refers to the arrangement or distribution of individual points or events within a two-dimensional space.
 
-**Survey (or sampling) technique(s)** are methods used to detect/capture/record animals in the field. This includes techniques such as camera trapping, DNA sampling, visual observation and many more. In the context of acoustic surveying, this involves placing microphones in a habitat to record the vocalisations of a specific species. 
+**Survey (or sampling) technique(s)** are methods used to detect/capture/record animals in the field. This includes techniques such as camera trapping, DNA sampling, visual observation, etc. In the context of acoustic surveying, this involves placing microphones in a habitat to record the vocalisations of a specific species. 
 
-**Survey** in the context of SCR refers to the structured event of going out and placing detectors in a predefined arrangement and for a certain amount of time in order to collect data on a wildlife population. 
+**Survey** in the context of SCR refers to the structured event of going out and placing detectors in a predefined arrangement and collecting data on a wildlife population for a certain amount of time. 
 
-**Time of arrival** is the  time the acoustic signal, i.e. call, was recorded at the detector. 
+**Time of arrival** is when the acoustic signal, i.e. call, was recorded at the detector. 
