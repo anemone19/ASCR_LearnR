@@ -9,15 +9,13 @@ runtime: shiny_prerendered
 
 ```{r setup, include=FALSE}
 
-library(shiny)
-
 # load images for plotting
 frog_image <- "images/frogGraphic.png"
 micro_image <- "images/micro.png"
 
 source("RScripts/PROBD_Setup.R")
 source("RScripts/SCR_Setup.R")
-source("RScripts/Chapter5_Setup.R")
+source("RScripts/aSCRCD_Setup.R")
 
 ```
 

@@ -151,10 +151,8 @@ rownames(forest_vol_data) <- NULL
 
 
 save(linear_mod,quad_mod,noise_mod,forest_mod,forest_vol_data,
-     temppop,trapdf,
+     temppop,trapdf, const_p_dat, hn_detfunc_dat, detfunctions,
      file = "data/CH3.RData" )
-
-
 
 
 

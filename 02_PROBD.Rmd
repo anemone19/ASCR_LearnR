@@ -33,10 +33,10 @@ Let's imagine we want to estimate this frog population's abundance.  We place ei
 
 The table below is a data frame consisting of [detection histories]{style="color:#668BA4;font-weight:bold;"}. Each row is a detection history of a call made and indicates at which microphone the call was recorded. An entry equal to "1" means that the call (i.e. row) was recorded at that microphone (i.e. column), and if not, the entry will be a zero. Click on one of the rows to show you the frog location and the microphones that detected the call. To get back to the original plot, just unclick the row.
 
-Below the detection history data, you'll also see the actual number of frogs ($N$), an estimate of the overall probability of detection ($p^*$) and an estim ate of abundance that was calculated as follows:
+Below the detection history data, you'll also see the actual number of frogs ($N$), an estimate of the overall probability of detection ($p^*$) and an estimate of abundance that was calculated as follows:
 
 $$
-\text{Estimate of N } = \frac{\text{number of detected frogs}}{p^*}
+\text{Estimate of N} = \frac{\text{number of detected frogs}}{p^*}
 $$ In the above formula, we are correcting for the number of frogs we missed by dividing by the overall probability of detecting an individual during the survey - that is, the probability of ever detecting an individual across all the microphones. To obtain $p^*$, we first calculate the probability of detecting an individual at a microphone ($p$) which we can calculate as the proportions of times we detected an individual (i.e. the proportion of 1s in our whole dataset). Then, the probability of missing an individual at a microphone is one minus $p$. But we have eight microphones, so the probability of missing an individual that many times is: $(1-p)^8$ and the complement of that is $p^* = 1-(1-p)^8$, the overall probability of detection.
 
 

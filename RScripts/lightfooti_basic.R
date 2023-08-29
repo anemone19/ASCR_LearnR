@@ -1,19 +1,17 @@
 # ACRE: LIGHTFOOTI SINGLE SURVEY ANALYSIS ----------------------------------------------
 
+# load required libraries
 library(ascr)
 library(acre)
 library(tidyverse)
 library(secr)
-
 
 # Data preparation ----------------------------------------------------------------------
 
 # get data from ascr package 
 lightfooti_data<-ascr::lightfooti
 
-
 # Convert binary capture history data to format required for data function 
-
 capt_single <- lightfooti_data$capt$bincapt
 
 # METHOD 1 - FOR LOOPS
@@ -77,8 +75,6 @@ traps <- as.data.frame(lightfooti_data$traps)
 
 # Buffer distance ----------------------------------------------------------------------
 
-library(secr)
-
 # trap dataframe 
 traps2 <- traps
 traps2$trap <- rownames(traps) # add trap column with trap ids 
@@ -135,11 +131,11 @@ ggplot(as.data.frame(traps),aes(x=x,y=y))+
 # we can create our own mask with the function create.mask() which takes the same traps_ID
 # dataframe as first argument and then buffer distance 
 
-mask <- create.mask(traps, 15)
+mask <- create.mask(traps, 14)
 
 # create covariate data frame using mask coordinates 
 
-cov_dat <- data.frame(x = lightfooti$mask[,1], y = lightfooti$mask[,2], spat_trend = "yes")
+cov_dat <- data.frame(x = mask[,1], y = mask[,2], spat_trend = "yes")
 
 # plot mask and detectors
 
@@ -155,8 +151,8 @@ ggplot() +
 # can pass buffer distance to the argument control_create_mask in the read.acre() and it will
 # create a mask for you 
 
-# per individual per 25 seconds to per second
-call_rates <- lightfooti$freqs
+# per individual per 25 seconds 
+call_rates <- lightfooti_data$freqs
 
 # create data object for model fitting 
 
@@ -169,7 +165,7 @@ call_rates <- lightfooti$freqs
 lightfooti_data <- read.acre(
   captures = captures,
   traps = traps,
-  control_create_mask = list(buffer=14)
+  mask = mask
 )
 
 ### Model fitting ---------------------------------------------------------------------------
@@ -214,6 +210,30 @@ ave_call_rate <- mean(call_rates)
 
 model1$coefficients[5]/ave_call_rate
 
+# EXERCISE: TIME UNITS --------------------------------------------------------------------------------------
+
+acre_data <- read.acre(
+  captures = captures,
+  traps = traps,
+  mask = mask,
+  survey.length = 25
+)
+
+model2 <- fit.acre(
+  dat = acre_data,
+  detfn = "hn",
+  fix = list(g0=1)
+)
+
+summary(model2)
+
+# variance
+
+model2_boot <- boot.acre(model2, N = 10) # bootstrapping
+
+acre::stdEr(model2_boot) # standard errors
+confint(model2_boot,type="fitted") # confidence intervals
+
 # SPATIAL TREND ------------------------------------------------------------------------
 
 ## ACRE Formatting ------------------------------------------------------------------------
@@ -223,13 +243,13 @@ lightfooti_data2 <- read.acre(
   traps = traps,
   mask = mask,
   loc_cov = cov_dat,
-  cue.rates = call_rates,
+  cue.rates = call_rates/25,
   survey.length = 25
 )
 
 ## Model Fitting ------------------------------------------------------------------------
 
-model2 <- fit.acre(
+model3 <- fit.acre(
   dat = lightfooti_data2,
   detfn = "hn", 
   par_extend_model = list(D=~x),
@@ -240,33 +260,34 @@ model2 <- fit.acre(
 
 # model output 
 
-summary(model2)
+summary(model3)
+
+# exponentiate regression coefficients
+
+exp(model3$coefficients)[3]
+exp(model3$coefficients)[4]
 
 # variance
 
-model2_boot <- boot.acre(model1, N = 500) # bootstrapping
+model3_boot <- boot.acre(model3, N = 10) # bootstrapping
 
-acre::stdEr(model2_boot) # standard errors
-confint(model2_boot) # confidence intervals
+acre::stdEr(model3_boot) # standard errors
+confint(model3_boot) # confidence intervals
 
 # detection function
 
-show_detfn(model2)
+show_detfn(model3)
 
 # density 
 
-show_Dsurf(model2) # constant like we specified 
-
+show_Dsurf(model3) 
 
 # save data as single RData object for tutorial
 save(captures,traps,mask,lightfooti_data,
      call_rates,ave_call_rate,model1,model1_boot,
-     lightfooti_data2,
-     model2, model2_boot, 
+     model2, acre_data,model2_boot,
+     lightfooti_data2, cov_dat,
+     model3,
      file="data/CH5.RData")
-
-
-
-
 
 

@@ -22,7 +22,8 @@
 library(shiny)
 library(ggplot2)
 library(shinyWidgets)
-
+library(ggplotify)
+library(plotly)
 # Setup ---------------------------------------------------------------------------------------------------------
 
 # Sequences of distances
@@ -66,9 +67,6 @@ hazard_halfnormal <- function(distance, g0, sigma) {
 
 # Names of detection functions fordropdown list in shiny app
 detfunctions <- c("Halfnormal", "Hazard Rate", "Exponential", "Uniform", "Hazard Halfnormal")
-
-
-detfunctions <- c("Halfnormal", "Hazard Rate", "Exponential", "Uniform", "Hazard Halfnormal", "Signal Strength")
 
 # UI ------------------------------------------------------------------------------------------------------------------------
 

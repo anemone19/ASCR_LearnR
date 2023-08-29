@@ -1,0 +1,1157 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+
+<head>
+
+<meta charset="utf-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+
+<meta name="progressive" content="false" />
+<meta name="allow-skip" content="false" />
+<meta name="learnr-version-prerender" content="0.11.4.9000" />
+
+<title>Chapter 3</title>
+
+<!-- header-includes START -->
+<!-- HEAD_CONTENT -->
+<!-- header-includes END -->
+<!-- HEAD_CONTENT -->
+
+<!-- highlightjs -->
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+<!-- taken from https://github.com/rstudio/rmarkdown/blob/de8a9c38618903627ca509f5401d50a0876079f7/inst/rmd/h/default.html#L293-L343 -->
+<!-- tabsets -->
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+<!-- end tabsets -->
+
+
+</head>
+
+<body>
+<a class='sr-only sr-only-focusable visually-hidden-focusable' href='#learnr-tutorial-content'>Skip to Tutorial Content</a>
+
+
+
+<div class="pageContent band">
+<main class="bandContent page">
+
+<article class="topics" id="learnr-tutorial-content">
+
+<div id="section-ch3" class="section level2">
+<h2>3 Introduction to SCR</h2>
+<p>In the previous section, we saw that detection probability varies due
+to the spatial relationship (i.e. distance) between animals and
+detectors (here, the recording devices). Traditional mark-recapture
+analyses overlook this spatial component by assuming a constant
+probability of detection regardless of the distance between the animal
+and detector. This leads to inaccurate results, which may have serious
+consequences. So, some really cool statistical ecologists developed a
+solution in the form of <span
+style="color:#668BA4;font-weight:bold;">spatially explicit
+capture-recapture</span> (SECR or SCR). Sounds very fancy but don’t
+worry, it’s relatively straightforward, and we won’t go into much (if
+any) statistical detail.</p>
+<div id="section-survey-structure" class="section level3">
+<h3>Survey structure</h3>
+<p>Before looking at the model structure, it is important that we
+understand the general structure of SCR data collection. SCR surveys
+consist of <span style="color:#668BA4;font-weight:bold;">sessions</span>
+and <span style="color:#668BA4;font-weight:bold;">occasions</span>.</p>
+<p>A session refers to a discrete period of time during which specific
+spatial capture-recapture surveys or parts of surveys are conducted. It
+encompasses the entire process of deploying detectors at specific
+spatial locations for a certain duration, detecting/capturing,
+potentially marking and redetecting/recapturing animals. Different
+sessions could refer to repeat surveys of the same area or other areas
+within a larger survey region. The important thing is that no
+redetections of the same individuals are possible between sessions and
+if possible, they are not recorded. Otherwise, the sessions are
+indistinguishable, and occasions are shared between sessions.</p>
+<p>An occasion refers to a distinct event or time point within a session
+when data are collected, i.e. when an individual is detected and/or
+redetected. Historically, two survey occasions were necessary to capture
+and mark individuals and then a second occasion to possibly recapture
+marked and/or unmarked individuals. This is because animals are
+physically detained by the detectors used, like pitfall traps or cages.
+So multiple occasions are necessary to have recaptures. In acoustic SCR
+surveys, redetections of calls can occur between detectors, so it is not
+necessary to have at least two occasions; a minimum of one is required.
+In other words, detectors that do not physically hold animals only
+require a single survey occasion as they typically allow simultaneous
+detections and redetections.</p>
+<p>In the frog example of Chapter 1, every time you clicked the survey
+button on the same set of frogs, you were conducting an occasion within
+a single session. If you sampled a new set of frogs, a new session
+started with new occasions! Now, we are ready to look at the SCR model
+structure.</p>
+</div>
+<div id="section-scr-components" class="section level3">
+<h3>SCR components</h3>
+<p>Spatial capture-recapture models consist of three key components, two
+sub-models (one for detection probability and one for density) and a
+mask defining our survey region:</p>
+<p><img src="images/scr_flow4.png" width="50%" style="display: block; margin: auto;" /></p>
+<p>The primary purpose of a SCR model is to estimate parameters,
+specifically <span
+style="color:#668BA4;font-weight:bold;">density</span> (the number of
+animals per unit area), of our wildlife population. Mathematically,
+density is defined as the intensity of a <span
+style="color:#668BA4;font-weight:bold;">spatial point pattern</span>.
+Let’s explain these concepts with a simple example. Imagine standing in
+a field and tossing a handful of marbles onto the ground. The way those
+marbles land and spread out across the field creates a pattern. This
+arrangement of marbles on the ground is a spatial point pattern where
+the points are the marbles. It’s all about how things are distributed
+and spaced out in a certain area, like a snapshot of where things are
+located in space.</p>
+<p>Now, think about how crowded the field is with marbles. The intensity
+of the spatial point pattern refers to how many marbles, on average, you
+would expect to find in a given area of the field. So, if many marbles
+are close together, the intensity would be high, indicating a dense
+pattern. On the other hand, if the marbles are more spread out, the
+intensity would be lower, indicating a more sparse pattern. Intensity
+helps us understand the overall “busyness” or concentration of points in
+the spatial pattern. In this context, the points are the locations of
+the animals, and the intensity of the point pattern is the density of
+animals.</p>
+<p>When we conduct a survey, we collect a sample of the animals and
+which animals we detect is dependent on the distance between detectors
+and animals. So to estimate density from our sample, we have to account
+for the detection process.</p>
+</div>
+<div id="section-detection-function" class="section level3">
+<h3>Detection function</h3>
+<p>The first component, the <span
+style="color:#668BA4;font-weight:bold;">detection function</span>,
+describes this relationship between detection probability and distance.
+If we were to plot the shape of the detection function of the basic MR
+model we looked at in the previous Chapter, it would look like this:</p>
+<p><img src="03_SCR_files/figure-html/flatcurve-1.png" width="624" style="display: block; margin: auto;" /></p>
+<p>It is simply a straight line at whatever we estimated our probability
+of detection to be (here 0.25). But the histogram of distances we built
+reveals a more realistic shape of a typical detection function. The
+shape below is called the half-normal detection function and is often
+used in SCR models. The function has two parameters, <span
+class="math inline">\(g_0\)</span> and <span
+class="math inline">\(\sigma\)</span>, which control certain features of
+the curve.</p>
+<p><img src="03_SCR_files/figure-html/detfunc-1.png" width="624" style="display: block; margin: auto;" /></p>
+<p><br/> The first parameter, <span class="math inline">\(g_0\)</span>,
+specifies the probability of detection when the distance between the
+animal and the detector is zero. The second parameter modifies the width
+of the shoulder of the curve. It controls how quickly we drop off to
+zero probability of detection. Play around with the values of the
+parameters below to see how they affect the shape of the
+relationship.</p>
+<!--SHINY.SINGLETON[aee36e0aa1fe9759814fb9fae3d7cd409bc717b0]-->
+<!--/SHINY.SINGLETON[aee36e0aa1fe9759814fb9fae3d7cd409bc717b0]-->
+<div class="row">
+<div class="col-sm-4">
+<form class="well" role="complementary">
+<div class="form-group shiny-input-container">
+<label class="control-label" id="detFunc-label" for="detFunc">Select Function:</label>
+<div>
+<select id="detFunc"><option value="Halfnormal" selected>Halfnormal</option>
+<option value="Hazard Rate">Hazard Rate</option>
+<option value="Exponential">Exponential</option>
+<option value="Uniform">Uniform</option>
+<option value="Hazard Halfnormal">Hazard Halfnormal</option></select>
+<script type="application/json" data-for="detFunc" data-nonempty="">{"plugins":["selectize-plugin-a11y"]}</script>
+</div>
+</div>
+<div class="form-group shiny-input-container">
+<label class="control-label" id="g0-label" for="g0">Set value of g0:</label>
+<input class="js-range-slider" id="g0" data-skin="shiny" data-min="0" data-max="1" data-from="1" data-step="0.01" data-grid="true" data-grid-num="10" data-grid-snap="false" data-prettify-separator="," data-prettify-enabled="true" data-keyboard="true" data-data-type="number"/>
+</div>
+<div class="form-group shiny-input-container">
+<label class="control-label" id="sigma-label" for="sigma">Set value for σ</label>
+<input class="js-range-slider" id="sigma" data-skin="shiny" data-min="0" data-max="20" data-from="5" data-step="1" data-grid="true" data-grid-num="10" data-grid-snap="false" data-prettify-separator="," data-prettify-enabled="true" data-keyboard="true" data-data-type="number"/>
+</div>
+<div data-display-if="input.detFunc == &#39;Hazard Rate&#39;" data-ns-prefix="">
+<div class="form-group shiny-input-container">
+<label class="control-label" id="z-label" for="z">Set value for z</label>
+<input class="js-range-slider" id="z" data-skin="shiny" data-min="0" data-max="1" data-from="0.5" data-step="0.01" data-grid="true" data-grid-num="10" data-grid-snap="false" data-prettify-separator="," data-prettify-enabled="true" data-keyboard="true" data-data-type="number"/>
+</div>
+</div>
+</form>
+</div>
+<div class="col-sm-8" role="main">
+<div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item-overflow-hidden html-fill-item" id="detFuncPlot" style="width:100%;height:400px;"></div>
+</div>
+</div>
+<p>There are many other detection functions as well! If we think the
+relationship between detection probability and distance looks slightly
+different, we could specify a different detection function. For example,
+the hazard rate function includes an additional parameter which has an
+additional parameter, <span class="math inline">\(z\)</span>. You can
+explore other detection functions by selecting from the dropdown list
+above.</p>
+<p>We no longer assume a constant probability of detection; we now have
+a mathematical model that describes the probability of detection as a
+function of the distance between detectors and animal locations. We tell
+the model what we think the shape of our detection function should look
+like (i.e. half-normal, hazard rate etc.) and then the model will
+estimate the parameters of the detection function based on the data we
+collected. You might be thinking, how do I choose the correct detection
+function? Well, statisticians have shown that, for the most part, it
+doesn’t really matter which shape you choose! As long as the shape is
+reasonable and aligns with what you know about your detectors and target
+species.</p>
+</div>
+<div id="section-mask" class="section level3">
+<h3>Mask</h3>
+<p>In the frog example of Chapter 1, we conducted an acoustic survey
+within a habitat patch with hard boundaries, so our survey region was
+clearly defined. In practice, habitats are typically more continuous and
+not so well demarcated. We somehow need to define the area we are
+sampling from and over which we are estimating density. Let’s think
+about what we know.</p>
+<p>We know that detection probability tapers off gradually with
+distance, but we don’t know the locations of all the animals we did or
+did not detect, so we can’t define an exact region. We can however
+define a distance beyond which we are super confident we definitely
+won’t detect a call. This distance is called the <span
+style="color:#668BA4;font-weight:bold;">buffer distance</span> and with
+the buffer distance, we are ensuring that our probability of detection
+definitely reaches zero within our sampled area. We can then be
+confident that we aren’t excluding any of the animals we detected in our
+sample, and our estimate of density is defined over a sensible area.</p>
+<p>Okay, but what to do with the fact that we don’t know the locations
+of the animals we did or did not detect? The buffer distance helps us to
+further deal with this. It creates a polygon around our detectors, and
+within this polygon, our model will try to estimate probable locations
+of the detected animals based on our detections and re-detections of the
+same calls across microphones. To do this, we consider all possible
+locations where an animal might be within the polygon! This area is a
+set of points (or rather coordinates) that form a “mask” around our
+detectors and is collectively referred to as a <span
+style="color:#668BA4;font-weight:bold;">habitat mask</span>. The buffer
+distance is formally defined as the minimum distance between detector
+locations and the boundary of the habitat mask.</p>
+<p>Play around with the buffer distance below to see how the habitat
+mask is defined (note the values on the axes as you increase the
+distance).</p>
+<div class="container-fluid">
+<div class="row" align="center" style="padding-left:30px;">
+<div class="form-group shiny-input-container" style="width:35%;">
+<label class="control-label" id="buffer-label" for="buffer">Buffer distance</label>
+<input class="js-range-slider" id="buffer" data-skin="shiny" data-min="1" data-max="200" data-from="100" data-step="1" data-grid="true" data-grid-num="9.95" data-grid-snap="false" data-prettify-separator="," data-prettify-enabled="true" data-keyboard="true" data-data-type="number"/>
+</div>
+</div>
+<div class="row" align="center">
+<div class="shiny-plot-output html-fill-item" id="maskBufferPlot" style="width:100%;height:400px;"></div>
+</div>
+</div>
+<p><br/></p>
+<p>The mask can also be modified to more accurately represent the
+sampled landscape. By incorporating knowledge about specific habitat
+types or areas unsuitable for the target species, we can refine the mask
+and exclude regions unlikely to harbour the species of interest. This
+leads to more accurate density estimates, focusing the analysis on the
+more relevant and suitable areas for the species.</p>
+</div>
+<div id="section-density-model" class="section level3">
+<h3>Density model</h3>
+<p>The third component models how the animals are distributed throughout
+space. Here we describe how we think the marbles we threw on the field
+are spread out - we make assumptions about what the pattern looks
+like.</p>
+<p>The most basic density model consists of only one parameter, density
+itself, and assumes that animals are spread evenly across space. In
+other words, the density of locations is constant throughout our survey
+region; there is no rhyme or reason to their distribution. Although
+mostly biologically unrealistic as landscapes are complex and consist of
+different habitats and features, assuming constant density may, in some
+cases, still provide reliable estimates of average density. For example,
+assuming constant density over small areas is not unreasonable.</p>
+<div class="container-fluid">
+<div class="row" align="center" style="padding-left:26px;">
+<div class="form-group shiny-input-container" style="width:35%;">
+<label class="control-label" id="density-label" for="density">Density (number of locations per hectare)</label>
+<input class="js-range-slider" id="density" data-skin="shiny" data-min="0" data-max="200" data-from="25" data-step="1" data-grid="true" data-grid-num="10" data-grid-snap="false" data-prettify-separator="," data-prettify-enabled="true" data-keyboard="true" data-data-type="number"/>
+</div>
+</div>
+<div class="row" align="center">
+<div class="shiny-plot-output html-fill-item" id="constantDensityPlot" style="width:100%;height:400px;"></div>
+</div>
+</div>
+<p>Alternatively, we can specify a model that describes density as
+varying unequally across space. Animal locations could vary due to, for
+example, the spatial arrangement of suitable habitats such as vegetation
+type or leaf litter or a spatial trend across the landscape. In the
+latter case, we could specify a linear trend or even a quadratic trend
+in density by modelling density as a function of the x and y coordinates
+of the specified mask. Have a look at the first two graphs below. We’re
+not going to worry too much about the units per now, we’re only
+demonstarting the idea.</p>
+<p>Landscape features can be anything we think is an essential
+determinant of where our target species might be, including the distance
+to or level of noise from human settlements or activities. We can then
+model density as a function of such variables, allowing density to
+change throughout the survey region accordingly. These features we call
+habitat covariates, and for every mask point, we have to have a value
+for the chosen habitat covariate. There are different ways of obtaining
+data for every mask point, we could have measured at every point, but
+this is likely unrealistic for very fine and large habitat masks.
+Alternatively, given a few measured points across the survey region, we
+could predict the rest using another statistical model (more on this in
+later Chapters).</p>
+<p>Habitat covariates, such as the forest volume covariate below, can be
+categorical, consisting of low, median and high levels. In that case, we
+have three model parameters related to three density estimates, one for
+each level of forest volume. The graph shows the regions of high, median
+and low and the table has the corresponding estimate of density.</p>
+<p>They can also be continuous, such as noise from anthropogenic
+activities measured in decibels. Then we get a continuous density
+surface with a predicted density value for every mask point. Under this
+model, we have two parameters, a baseline density when noise is at zero
+and a parameter describing the effect of noise on density. We use the
+effect parameter to predict the surface you see below. It’s clear that
+for regions with high levels of noise, we have low density and vice
+versa.</p>
+<div class="container-fluid">
+<div class="tabbable">
+<ul class="nav nav-tabs" data-tabsetid="1631">
+<li class="active">
+<a href="#tab-1631-1" data-toggle="tab" data-bs-toggle="tab" data-value="Linear trend">Linear trend</a>
+</li>
+<li>
+<a href="#tab-1631-2" data-toggle="tab" data-bs-toggle="tab" data-value="Quadratic trend">Quadratic trend</a>
+</li>
+<li>
+<a href="#tab-1631-3" data-toggle="tab" data-bs-toggle="tab" data-value="Forest cover">Forest cover</a>
+</li>
+<li>
+<a href="#tab-1631-4" data-toggle="tab" data-bs-toggle="tab" data-value="Noise">Noise</a>
+</li>
+</ul>
+<div class="tab-content" data-tabsetid="1631">
+<div class="tab-pane active" data-value="Linear trend" fluid="TRUE" id="tab-1631-1">
+<div class="shiny-plot-output html-fill-item" id="linearPlot" style="width:100%;height:400px;"></div>
+</div>
+<div class="tab-pane" data-value="Quadratic trend" fluid="TRUE" id="tab-1631-2">
+<div class="shiny-plot-output html-fill-item" id="quadPlot" style="width:100%;height:400px;"></div>
+</div>
+<div class="tab-pane" data-value="Forest cover" fluid="TRUE" id="tab-1631-3">
+<div class="row">
+<div class="col-sm-6">
+<div class="shiny-plot-output html-fill-item" id="forestVolPlot" style="width:100%;height:400px;"></div>
+</div>
+<div class="col-sm-6" style="align: center;">
+<div class="datatables html-widget html-widget-output shiny-report-size html-fill-item-overflow-hidden html-fill-item" id="forestDT" style="width:100%;height:auto;"></div>
+</div>
+</div>
+</div>
+<div class="tab-pane" data-value="Noise" fluid="TRUE" id="tab-1631-4">
+<div class="row">
+<div class="col-sm-6">
+<div class="shiny-plot-output html-fill-item" id="noisePlot" style="width:100%;height:400px;"></div>
+</div>
+<div class="col-sm-6">
+<div class="shiny-plot-output html-fill-item" id="noiseDensityPlot" style="width:100%;height:400px;"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<p>In later Chapters, we’ll look into these parameters’ interpretation
+in more detail. For now, you must understand that we can include habitat
+covariates in our model to allow density to vary across the survey
+region.</p>
+<p>Before moving on, let’s ensure we understand some core concepts with
+a quick quiz. You can try the questions multiple times; some may have
+more than one correct answer.</p>
+<div class="panel-heading tutorial-quiz-title">Quick quiz</div>
+<div class="panel panel-default tutorial-question-container">
+<div data-label="quiz1-1" class="tutorial-question panel-body">
+<div id="quiz1-1-answer_container" class="shiny-html-output"></div>
+<div id="quiz1-1-message_container" class="shiny-html-output"></div>
+<div id="quiz1-1-action_button_container" class="shiny-html-output"></div>
+<script>if (Tutorial.triggerMathJax) Tutorial.triggerMathJax()</script>
+</div>
+</div>
+<div class="panel panel-default tutorial-question-container">
+<div data-label="quiz1-2" class="tutorial-question panel-body">
+<div id="quiz1-2-answer_container" class="shiny-html-output"></div>
+<div id="quiz1-2-message_container" class="shiny-html-output"></div>
+<div id="quiz1-2-action_button_container" class="shiny-html-output"></div>
+<script>if (Tutorial.triggerMathJax) Tutorial.triggerMathJax()</script>
+</div>
+</div>
+<div class="panel panel-default tutorial-question-container">
+<div data-label="quiz1-3" class="tutorial-question panel-body">
+<div id="quiz1-3-answer_container" class="shiny-html-output"></div>
+<div id="quiz1-3-message_container" class="shiny-html-output"></div>
+<div id="quiz1-3-action_button_container" class="shiny-html-output"></div>
+<script>if (Tutorial.triggerMathJax) Tutorial.triggerMathJax()</script>
+</div>
+</div>
+<div class="panel panel-default tutorial-question-container">
+<div data-label="quiz1-4" class="tutorial-question panel-body">
+<div id="quiz1-4-answer_container" class="shiny-html-output"></div>
+<div id="quiz1-4-message_container" class="shiny-html-output"></div>
+<div id="quiz1-4-action_button_container" class="shiny-html-output"></div>
+<script>if (Tutorial.triggerMathJax) Tutorial.triggerMathJax()</script>
+</div>
+</div>
+<div class="panel panel-default tutorial-question-container">
+<div data-label="quiz1-5" class="tutorial-question panel-body">
+<div id="quiz1-5-answer_container" class="shiny-html-output"></div>
+<div id="quiz1-5-message_container" class="shiny-html-output"></div>
+<div id="quiz1-5-action_button_container" class="shiny-html-output"></div>
+<script>if (Tutorial.triggerMathJax) Tutorial.triggerMathJax()</script>
+</div>
+</div>
+<div class="panel panel-default tutorial-question-container">
+<div data-label="quiz1-6" class="tutorial-question panel-body">
+<div id="quiz1-6-answer_container" class="shiny-html-output"></div>
+<div id="quiz1-6-message_container" class="shiny-html-output"></div>
+<div id="quiz1-6-action_button_container" class="shiny-html-output"></div>
+<script>if (Tutorial.triggerMathJax) Tutorial.triggerMathJax()</script>
+</div>
+</div>
+<div class="panel panel-default tutorial-question-container">
+<div data-label="quiz1-7" class="tutorial-question panel-body">
+<div id="quiz1-7-answer_container" class="shiny-html-output"></div>
+<div id="quiz1-7-message_container" class="shiny-html-output"></div>
+<div id="quiz1-7-action_button_container" class="shiny-html-output"></div>
+<script>if (Tutorial.triggerMathJax) Tutorial.triggerMathJax()</script>
+</div>
+</div>
+<div class="panel panel-default tutorial-question-container">
+<div data-label="quiz1-8" class="tutorial-question panel-body">
+<div id="quiz1-8-answer_container" class="shiny-html-output"></div>
+<div id="quiz1-8-message_container" class="shiny-html-output"></div>
+<div id="quiz1-8-action_button_container" class="shiny-html-output"></div>
+<script>if (Tutorial.triggerMathJax) Tutorial.triggerMathJax()</script>
+</div>
+</div>
+<div class="panel panel-default tutorial-question-container">
+<div data-label="quiz1-9" class="tutorial-question panel-body">
+<div id="quiz1-9-answer_container" class="shiny-html-output"></div>
+<div id="quiz1-9-message_container" class="shiny-html-output"></div>
+<div id="quiz1-9-action_button_container" class="shiny-html-output"></div>
+<script>if (Tutorial.triggerMathJax) Tutorial.triggerMathJax()</script>
+</div>
+</div>
+<div class="panel panel-default tutorial-question-container">
+<div data-label="quiz1-10" class="tutorial-question panel-body">
+<div id="quiz1-10-answer_container" class="shiny-html-output"></div>
+<div id="quiz1-10-message_container" class="shiny-html-output"></div>
+<div id="quiz1-10-action_button_container" class="shiny-html-output"></div>
+<script>if (Tutorial.triggerMathJax) Tutorial.triggerMathJax()</script>
+</div>
+</div>
+<div class="learnBox">
+<p><strong>Summary:</strong></p>
+<ul>
+<li>To combat the issues of traditional mark-recapture models,
+statistical ecologists developed spatial capture-recapture (SCR).</li>
+<li>SCR models have three key components: detection function, mask and
+density model.</li>
+<li>The detection function describes the relationship between detection
+probability and distance.</li>
+<li>The mask defines the area of our study and is a set of coordinates
+that form a “mask” around the detectors.</li>
+<li>The buffer distance is the minimum distance between a detector and
+the edge of the mask.</li>
+<li>We describe the distribution of animals through a density
+model.</li>
+<li>Density can be either constant throughout the survey region or it
+can be modelled as a function of habitat covariates and spatial
+trends.</li>
+<li>SCR models combine sub-models for detection probability and density
+together with a habitat mask and in doing so they estimate density
+within a defined survey region while accounting for the spatial
+variation in detection probability.</li>
+</ul>
+</div>
+<p>
+<script type="application/shiny-prerendered" data-context="server-start">
+# NB if you want to run the Chapter on its own, remove the number after setup in the chunk name and uncomment the code below 
+
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+
+source("RScripts/SCR_Setup.R")
+
+</script>
+ 
+<script type="application/shiny-prerendered" data-context="server">
+learnr:::register_http_handlers(session, metadata = NULL)
+</script>
+
+
+<script type="application/shiny-prerendered" data-context="server">
+learnr:::prepare_tutorial_state(session)
+</script>
+ 
+<script type="application/shiny-prerendered" data-context="server">
+learnr:::i18n_observe_tutorial_language(input, session)
+</script>
+
+
+<script type="application/shiny-prerendered" data-context="server">
+session$onSessionEnded(function() {
+        learnr:::event_trigger(session, "session_stop")
+      })
+</script>
+ 
+<script type="application/shiny-prerendered" data-context="server">
+# Shiny Server
+  observeEvent(input$detFunc == detfunctions[5], {
+    updateSliderInput(
+      session = session,
+      inputId = "g0",
+      label = "Set value for λ0",
+      max = 5
+    )
+  }, ignoreInit = TRUE)
+  
+  output$detFuncPlot <- renderPlotly({
+    if (input$detFunc == detfunctions[1]) {
+      y <- halfnormal(dist_seq, input$g0, input$sigma)
+    } else if (input$detFunc == detfunctions[2]) {
+      y <- hazard_rate(dist_seq, input$g0, input$sigma, input$z)
+    } else if (input$detFunc == detfunctions[3]) {
+      y <- exponential(dist_seq, input$g0, input$sigma)
+    } else if (input$detFunc == detfunctions[4]) {
+      y <- uniform(dist_seq, input$g0, input$sigma)
+    } else if (input$detFunc == detfunctions[5]) {
+      y <- hazard_halfnormal(dist_seq, input$g0, input$sigma)
+    }
+    
+    # Create data frame
+    df <- data.frame(Distance = dist_seq, Probability = y)
+    
+    # Create data frame
+    df <- data.frame(Distance = dist_seq, Probd = y)
+    df$Probability <- round(df$Probd,2) # just for ggplotly label
+    
+    # Plot
+    ggplotly(
+      ggplot(df, aes(Distance, Probd, label = Probability)) +
+        geom_line(linewidth = 0.7, colour = "#97CBA9") +
+        labs(title = paste(input$detFunc, "Detection Function")) +
+        xlab("\nDistance") +
+        ylab("Detection probability\n") +
+        ylim(0, 1) +
+        theme_minimal() +
+        theme(
+          axis.title = element_text(size = 10),
+          plot.title = element_text(size = 15)
+        ),
+      tooltip = c("Distance","label")
+    ) 
+    
+  })
+</script>
+
+
+<script type="application/shiny-prerendered" data-context="server">
+output$maskBufferPlot <- renderPlot({
+  mask <- create.mask(traps = trapdf, buffer = input$buffer)
+
+  masks_df <- rbind(mask[, 1:2], trapdf)
+  masks_df$type <- rep(c("Mask Point", "Detector"), c(nrow(mask), nrow(trapdf)))
+
+
+  ggplot() +
+    geom_point(data = masks_df, aes(x = x, y = y), alpha = 0.75, colour = "#678BA4") +
+    geom_image(data = trapdf, aes(x = x, y = y, image = micro_image), size = 0.2) +
+    theme_minimal() +
+    coord_fixed() +
+    labs(
+      x = "\nX",
+      y = "Y"
+    ) +
+    theme(
+      legend.position = "bottom",
+      legend.title = element_blank(),
+      panel.background = element_rect(fill = "#c1e0cb")
+    )
+})
+</script>
+ 
+<script type="application/shiny-prerendered" data-context="server">
+output$constantDensityPlot <- renderPlot({
+  set.seed(1908) # set seed
+  temppop <- sim.popn(D = input$density, expand.grid(x = c(0, 100), y = c(0, 100)), buffer = 50)
+
+  ggplot(temppop, aes(x = x, y = y)) +
+    geom_point() +
+    labs(
+      x = "\nX",
+      y = "Y\n"
+    ) +
+    coord_fixed() +
+    theme(
+      legend.position = "top",
+      legend.title = element_blank(),
+      panel.background = element_rect(fill = "#c1e0cb"),
+      panel.grid.minor = element_blank(),
+      panel.grid.major = element_blank()
+    ) +
+    scale_x_continuous(n.breaks = 15) +
+    scale_y_continuous(n.breaks = 10)
+})
+</script>
+
+
+<script type="application/shiny-prerendered" data-context="server">
+output$linearPlot <- renderPlot({
+  ggplot(linear_mod$pred_data) +
+    aes(x = X, y = Y, z = Density, fill = Density) +
+    geom_tile() +
+    geom_contour(color = "grey", alpha = 0.5) +
+    geom_text_contour(aes(z = Density), stroke = 0.1, colour = "grey") +
+    coord_equal() +
+    scale_fill_viridis() +
+    theme_bw()
+})
+
+output$quadPlot <- renderPlot({
+  ggplot(quad_mod$pred_data) +
+    aes(x = X, y = Y, z = Density, fill = Density) +
+    geom_tile() +
+    geom_contour(color = "grey", alpha = 0.5) +
+    geom_text_contour(aes(z = Density), stroke = 0.1, colour = "grey") +
+    coord_equal() +
+    scale_fill_viridis() +
+    theme_bw()
+})
+
+
+output$noisePlot <- renderPlot({
+  # noise covariate data
+  noise_data <- noise_mod$model_fit$all.covariates
+  colnames(noise_data)[3] <- "Noise"
+
+  ggplot(noise_data) +
+    aes(x = x, y = y, z = Noise, fill = Noise) +
+    geom_tile() +
+    geom_contour(color = "grey", alpha = 0.5) +
+    geom_text_contour(aes(z = Noise), stroke = 0.1, colour = "grey") +
+    coord_equal() +
+    ggtitle("Level of noise from human activities") +
+    scale_fill_distiller(palette = "Spectral") +
+    theme_bw()
+})
+
+output$noiseDensityPlot <- renderPlot({
+  ggplot(noise_mod$pred_data) +
+    aes(x = X, y = Y, z = Density, fill = Density) +
+    geom_tile() +
+    geom_contour(color = "grey", alpha = 0.5) +
+    geom_text_contour(aes(z = Density), stroke = 0.1, colour = "grey") +
+    coord_equal() +
+    ggtitle("Predicted density surface (D=~noise)") +
+    scale_fill_viridis() +
+    theme_bw()
+})
+
+output$forestVolPlot <- renderPlot({
+forest_vol_data <- forest_mod$pred_data %>%
+  mutate(Forest = ifelse(
+    Density == "2015", "Low",
+    ifelse(Density == "4363", "High","Median")
+  ))
+
+ggplot(forest_vol_data) +
+  aes(x = X, y = Y, fill = Forest) +
+  geom_tile() +
+  coord_equal() +
+  scale_fill_manual(values=c("#B2182B","#FEE08B","#3288BD")) +
+  theme_bw()
+
+})
+
+output$forestDT <- DT::renderDT({
+  forest_vol_data %>%
+    select(Forest,Density) %>%
+    distinct(Density,Forest) %>% 
+    arrange(desc(Density)) %>%
+    DT::datatable(
+      class = "cell-border",
+      escape = FALSE,
+      extensions = "Buttons",
+      selection = "single",
+      options = list(dom = "t", ordering = F)
+    )
+})
+
+output$forestPlot <- renderPlot({
+ggplot(forest_mod$pred_data) +
+  aes(x = X, y = Y,fill = Density) +
+  geom_tile() +
+  scale_fill_manual(values = c("#450D54","#56C666","#FDE823"))+
+  coord_equal() +
+  theme_bw()
+})
+</script>
+ 
+<script type="application/shiny-prerendered" data-context="server">
+learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "quiz1-1", question = structure("How many parameters does a SCR model with constant density and a half-normal detection function have?", html = TRUE, class = c("html", 
+"character")), answers = list(structure(list(id = "lnr_ans_c634b99", 
+    option = "1 (Density)", value = "1 (Density)", label = structure("1 (Density)", html = TRUE, class = c("html", 
+    "character")), correct = FALSE, message = structure("Almost, but what about the detection function?", html = TRUE, class = c("html", 
+    "character")), type = "literal"), class = c("tutorial_question_answer", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_eb4eaa9", 
+    option = "3 (g0,σ and density)", value = "3 (g0,σ and density)", 
+    label = structure("3 (g0,σ and density)", html = TRUE, class = c("html", 
+    "character")), correct = TRUE, message = structure("Woohoo! That’s correct :)", html = TRUE, class = c("html", 
+    "character")), type = "literal"), class = c("tutorial_question_answer", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_f002f07", 
+    option = "2 (probability of detection and density)", value = "2 (probability of detection and density)", 
+    label = structure("2 (probability of detection and density)", html = TRUE, class = c("html", 
+    "character")), correct = FALSE, message = structure("Not quite, remember probability of detection is now a function of distance.", html = TRUE, class = c("html", 
+    "character")), type = "literal"), class = c("tutorial_question_answer", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_6473698", 
+    option = "4 (g0, σ, habitat mask and density)", value = "4 (g0, σ, habitat mask and density)", 
+    label = structure("4 (g0, σ, habitat mask and density)", html = TRUE, class = c("html", 
+    "character")), correct = FALSE, message = structure("Close, but remember we have to specify the habitat mask so that our model can estimate density.", html = TRUE, class = c("html", 
+    "character")), type = "literal"), class = c("tutorial_question_answer", 
+"tutorial_quiz_answer"))), button_labels = list(submit = structure("<span data-i18n=\"button.questionsubmit\">Submit Answer<\u002fspan>", html = TRUE, class = c("html", 
+"character")), try_again = structure("<span data-i18n=\"button.questiontryagain\">Try Again<\u002fspan>", html = TRUE, class = c("html", 
+"character"))), messages = list(correct = structure("Correct!", html = TRUE, class = c("html", 
+"character")), try_again = structure("Incorrect", html = TRUE, class = c("html", 
+"character")), incorrect = structure("Incorrect", html = TRUE, class = c("html", 
+"character")), message = NULL, post_message = NULL), ids = list(
+    answer = "quiz1-1-answer", question = "quiz1-1"), loading = NULL, 
+    random_answer_order = TRUE, allow_retry = TRUE, seed = 1097864200.48877, 
+    options = list()), class = c("learnr_radio", "tutorial_question"
+)), session = session)
+</script>
+
+
+<script type="application/shiny-prerendered" data-context="server">
+learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "quiz1-2", question = structure("What is the primary purpose of SCR models?", html = TRUE, class = c("html", 
+"character")), answers = list(structure(list(id = "lnr_ans_17f77a1", 
+    option = "To estimate animal density", value = "To estimate animal density", 
+    label = structure("To estimate animal density", html = TRUE, class = c("html", 
+    "character")), correct = TRUE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_92df42b", 
+    option = "To estimate the probability of detection", value = "To estimate the probability of detection", 
+    label = structure("To estimate the probability of detection", html = TRUE, class = c("html", 
+    "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_f605332", 
+    option = "To identify individual animals from CR data", value = "To identify individual animals from CR data", 
+    label = structure("To identify individual animals from CR data", html = TRUE, class = c("html", 
+    "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_7fbbae9", 
+    option = "To study animal movement and behaviour", value = "To study animal movement and behaviour", 
+    label = structure("To study animal movement and behaviour", html = TRUE, class = c("html", 
+    "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
+"tutorial_quiz_answer"))), button_labels = list(submit = structure("<span data-i18n=\"button.questionsubmit\">Submit Answer<\u002fspan>", html = TRUE, class = c("html", 
+"character")), try_again = structure("<span data-i18n=\"button.questiontryagain\">Try Again<\u002fspan>", html = TRUE, class = c("html", 
+"character"))), messages = list(correct = structure("Correct!", html = TRUE, class = c("html", 
+"character")), try_again = structure("Try again!", html = TRUE, class = c("html", 
+"character")), incorrect = structure("Try again!", html = TRUE, class = c("html", 
+"character")), message = NULL, post_message = NULL), ids = list(
+    answer = "quiz1-2-answer", question = "quiz1-2"), loading = NULL, 
+    random_answer_order = TRUE, allow_retry = TRUE, seed = 1169018183.45563, 
+    options = list()), class = c("learnr_radio", "tutorial_question"
+)), session = session)
+</script>
+ 
+<script type="application/shiny-prerendered" data-context="server">
+learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "quiz1-3", question = structure("What is the relationship between the buffer distance and the habitat mask?", html = TRUE, class = c("html", 
+"character")), answers = list(structure(list(id = "lnr_ans_70b3297", 
+    option = "The mask includes regions beyond the buffer distance.", 
+    value = "The mask includes regions beyond the buffer distance.", 
+    label = structure("The mask includes regions beyond the buffer distance.", html = TRUE, class = c("html", 
+    "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_59b795b", 
+    option = "The buffer distance is a parameter within the mask.", 
+    value = "The buffer distance is a parameter within the mask.", 
+    label = structure("The buffer distance is a parameter within the mask.", html = TRUE, class = c("html", 
+    "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_c4da9e2", 
+    option = "The buffer distance defines the mask area, it is the minimum distance between a detector and the mask boundary.", 
+    value = "The buffer distance defines the mask area, it is the minimum distance between a detector and the mask boundary.", 
+    label = structure("The buffer distance defines the mask area, it is the minimum distance between a detector and the mask boundary.", html = TRUE, class = c("html", 
+    "character")), correct = TRUE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_6bcf9ce", 
+    option = "The mask defines the length of the buffer distance specified.", 
+    value = "The mask defines the length of the buffer distance specified.", 
+    label = structure("The mask defines the length of the buffer distance specified.", html = TRUE, class = c("html", 
+    "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
+"tutorial_quiz_answer"))), button_labels = list(submit = structure("<span data-i18n=\"button.questionsubmit\">Submit Answer<\u002fspan>", html = TRUE, class = c("html", 
+"character")), try_again = structure("<span data-i18n=\"button.questiontryagain\">Try Again<\u002fspan>", html = TRUE, class = c("html", 
+"character"))), messages = list(correct = structure("Correct!", html = TRUE, class = c("html", 
+"character")), try_again = structure("Incorrect, if you’re unsure why not play around with the buffer distance again.", html = TRUE, class = c("html", 
+"character")), incorrect = structure("Incorrect, if you’re unsure why not play around with the buffer distance again.", html = TRUE, class = c("html", 
+"character")), message = NULL, post_message = NULL), ids = list(
+    answer = "quiz1-3-answer", question = "quiz1-3"), loading = NULL, 
+    random_answer_order = TRUE, allow_retry = TRUE, seed = 1065468886.00385, 
+    options = list()), class = c("learnr_radio", "tutorial_question"
+)), session = session)
+</script>
+
+
+<script type="application/shiny-prerendered" data-context="server">
+learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "quiz1-4", question = structure("Which term is used to describe the assumption of animals being evenly distributed across space?", html = TRUE, class = c("html", 
+"character")), answers = list(structure(list(id = "lnr_ans_c868ae3", 
+    option = "Spatial point pattern", value = "Spatial point pattern", 
+    label = structure("Spatial point pattern", html = TRUE, class = c("html", 
+    "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_19bfb9", 
+    option = "Variable intensity", value = "Variable intensity", 
+    label = structure("Variable intensity", html = TRUE, class = c("html", 
+    "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_9dda68", 
+    option = "Constant density", value = "Constant density", 
+    label = structure("Constant density", html = TRUE, class = c("html", 
+    "character")), correct = TRUE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_49e3503", 
+    option = "Inhomogenous density", value = "Inhomogenous density", 
+    label = structure("Inhomogenous density", html = TRUE, class = c("html", 
+    "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
+"tutorial_quiz_answer"))), button_labels = list(submit = structure("<span data-i18n=\"button.questionsubmit\">Submit Answer<\u002fspan>", html = TRUE, class = c("html", 
+"character")), try_again = structure("<span data-i18n=\"button.questiontryagain\">Try Again<\u002fspan>", html = TRUE, class = c("html", 
+"character"))), messages = list(correct = structure("Correct!", html = TRUE, class = c("html", 
+"character")), try_again = structure("Nope!", html = TRUE, class = c("html", 
+"character")), incorrect = structure("Nope!", html = TRUE, class = c("html", 
+"character")), message = NULL, post_message = NULL), ids = list(
+    answer = "quiz1-4-answer", question = "quiz1-4"), loading = NULL, 
+    random_answer_order = TRUE, allow_retry = TRUE, seed = 1366499966.36367, 
+    options = list()), class = c("learnr_radio", "tutorial_question"
+)), session = session)
+</script>
+ 
+<script type="application/shiny-prerendered" data-context="server">
+learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "quiz1-5", question = structure("What component of an SCR model describes how animals are distributed throughout space?", html = TRUE, class = c("html", 
+"character")), answers = list(structure(list(id = "lnr_ans_bcfbe96", 
+    option = "Habitat mask", value = "Habitat mask", label = structure("Habitat mask", html = TRUE, class = c("html", 
+    "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_180856e", 
+    option = "Detection function", value = "Detection function", 
+    label = structure("Detection function", html = TRUE, class = c("html", 
+    "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_d769759", 
+    option = "Density model", value = "Density model", label = structure("Density model", html = TRUE, class = c("html", 
+    "character")), correct = TRUE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_2428207", 
+    option = "Buffer distance", value = "Buffer distance", label = structure("Buffer distance", html = TRUE, class = c("html", 
+    "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
+"tutorial_quiz_answer"))), button_labels = list(submit = structure("<span data-i18n=\"button.questionsubmit\">Submit Answer<\u002fspan>", html = TRUE, class = c("html", 
+"character")), try_again = structure("<span data-i18n=\"button.questiontryagain\">Try Again<\u002fspan>", html = TRUE, class = c("html", 
+"character"))), messages = list(correct = structure("Correct!", html = TRUE, class = c("html", 
+"character")), try_again = structure("Think about the marble example!", html = TRUE, class = c("html", 
+"character")), incorrect = structure("Think about the marble example!", html = TRUE, class = c("html", 
+"character")), message = NULL, post_message = NULL), ids = list(
+    answer = "quiz1-5-answer", question = "quiz1-5"), loading = NULL, 
+    random_answer_order = TRUE, allow_retry = TRUE, seed = 1744790325.18752, 
+    options = list()), class = c("learnr_radio", "tutorial_question"
+)), session = session)
+</script>
+
+
+<script type="application/shiny-prerendered" data-context="server">
+learnr:::question_prerendered_chunk(structure(list(type = "learnr_checkbox", label = "quiz1-6", question = structure("In the context of SCR modeling, what does the ‘mask’ refer to?", html = TRUE, class = c("html", 
+"character")), answers = list(structure(list(id = "lnr_ans_96d7686", 
+    option = "A tool for capturing animals using detectors.", 
+    value = "A tool for capturing animals using detectors.", 
+    label = structure("A tool for capturing animals using detectors.", html = TRUE, class = c("html", 
+    "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_d81a0eb", 
+    option = "A set of coordinates defining a habitat where animals occur.", 
+    value = "A set of coordinates defining a habitat where animals occur.", 
+    label = structure("A set of coordinates defining a habitat where animals occur.", html = TRUE, class = c("html", 
+    "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_b6721b2", 
+    option = "A set of points or coordinates that define the area within which we are detecting animals.", 
+    value = "A set of points or coordinates that define the area within which we are detecting animals.", 
+    label = structure("A set of points or coordinates that define the area within which we are detecting animals.", html = TRUE, class = c("html", 
+    "character")), correct = TRUE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_f021fac", 
+    option = "The mask is a set of coordinates which defines our survey region over which we estimate density. ", 
+    value = "The mask is a set of coordinates which defines our survey region over which we estimate density. ", 
+    label = structure("The mask is a set of coordinates which defines our survey region over which we estimate density.", html = TRUE, class = c("html", 
+    "character")), correct = TRUE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
+"tutorial_quiz_answer"))), button_labels = list(submit = structure("<span data-i18n=\"button.questionsubmit\">Submit Answer<\u002fspan>", html = TRUE, class = c("html", 
+"character")), try_again = structure("<span data-i18n=\"button.questiontryagain\">Try Again<\u002fspan>", html = TRUE, class = c("html", 
+"character"))), messages = list(correct = structure("Correct!", html = TRUE, class = c("html", 
+"character")), try_again = structure("Incorrect. Be sure to select every correct answer.", html = TRUE, class = c("html", 
+"character")), incorrect = structure("Not quite!", html = TRUE, class = c("html", 
+"character")), message = NULL, post_message = NULL), ids = list(
+    answer = "quiz1-6-answer", question = "quiz1-6"), loading = NULL, 
+    random_answer_order = TRUE, allow_retry = TRUE, seed = 1122765110.97717, 
+    options = list()), class = c("learnr_checkbox", "tutorial_question"
+)), session = session)
+</script>
+ 
+<script type="application/shiny-prerendered" data-context="server">
+learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "quiz1-7", question = structure("What is the main advantage of using a spatially explicit capture-recapture model?", html = TRUE, class = c("html", 
+"character")), answers = list(structure(list(id = "lnr_ans_2aa05e6", 
+    option = "It simplifies the analysis process.", value = "It simplifies the analysis process.", 
+    label = structure("It simplifies the analysis process.", html = TRUE, class = c("html", 
+    "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_2cca55a", 
+    option = "It eliminates the need for habitat covariates.", 
+    value = "It eliminates the need for habitat covariates.", 
+    label = structure("It eliminates the need for habitat covariates.", html = TRUE, class = c("html", 
+    "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_2e5622", 
+    option = "It focuses only on animal density estimation.", 
+    value = "It focuses only on animal density estimation.", 
+    label = structure("It focuses only on animal density estimation.", html = TRUE, class = c("html", 
+    "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_505c2", 
+    option = "It accounts for spatial variation in detection probability.", 
+    value = "It accounts for spatial variation in detection probability.", 
+    label = structure("It accounts for spatial variation in detection probability.", html = TRUE, class = c("html", 
+    "character")), correct = TRUE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
+"tutorial_quiz_answer"))), button_labels = list(submit = structure("<span data-i18n=\"button.questionsubmit\">Submit Answer<\u002fspan>", html = TRUE, class = c("html", 
+"character")), try_again = structure("<span data-i18n=\"button.questiontryagain\">Try Again<\u002fspan>", html = TRUE, class = c("html", 
+"character"))), messages = list(correct = structure("Correct!", html = TRUE, class = c("html", 
+"character")), try_again = structure("Not quite!", html = TRUE, class = c("html", 
+"character")), incorrect = structure("Not quite!", html = TRUE, class = c("html", 
+"character")), message = NULL, post_message = NULL), ids = list(
+    answer = "quiz1-7-answer", question = "quiz1-7"), loading = NULL, 
+    random_answer_order = TRUE, allow_retry = TRUE, seed = 949215999.557987, 
+    options = list()), class = c("learnr_radio", "tutorial_question"
+)), session = session)
+</script>
+
+
+<script type="application/shiny-prerendered" data-context="server">
+learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "quiz1-8", question = structure("Which parameter of the detection function specifies the probability of detection when distance is zero?", html = TRUE, class = c("html", 
+"character")), answers = list(structure(list(id = "lnr_ans_3e0e59f", 
+    option = "$g0$", value = "$g0$", label = structure("\\(g0\\)", html = TRUE, class = c("html", 
+    "character")), correct = TRUE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_4149377", 
+    option = "$z0$", value = "$z0$", label = structure("\\(z0\\)", html = TRUE, class = c("html", 
+    "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_539f350", 
+    option = "$\\sigma$", value = "$\\sigma$", label = structure("\\(\\sigma\\)", html = TRUE, class = c("html", 
+    "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_54d24d", 
+    option = "$z$", value = "$z$", label = structure("\\(z\\)", html = TRUE, class = c("html", 
+    "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
+"tutorial_quiz_answer"))), button_labels = list(submit = structure("<span data-i18n=\"button.questionsubmit\">Submit Answer<\u002fspan>", html = TRUE, class = c("html", 
+"character")), try_again = structure("<span data-i18n=\"button.questiontryagain\">Try Again<\u002fspan>", html = TRUE, class = c("html", 
+"character"))), messages = list(correct = structure("Correct!", html = TRUE, class = c("html", 
+"character")), try_again = structure("Not quite!", html = TRUE, class = c("html", 
+"character")), incorrect = structure("Not quite!", html = TRUE, class = c("html", 
+"character")), message = NULL, post_message = NULL), ids = list(
+    answer = "quiz1-8-answer", question = "quiz1-8"), loading = NULL, 
+    random_answer_order = TRUE, allow_retry = TRUE, seed = 16681857.4922319, 
+    options = list()), class = c("learnr_radio", "tutorial_question"
+)), session = session)
+</script>
+ 
+<script type="application/shiny-prerendered" data-context="server">
+learnr:::question_prerendered_chunk(structure(list(type = "learnr_checkbox", label = "quiz1-9", question = structure("Why can’t we assume constant probability of detection throughout the survey region?", html = TRUE, class = c("html", 
+"character")), answers = list(structure(list(id = "lnr_ans_8f1b509", 
+    option = "Animals closer to detectors are more likely to get detected than those further away.", 
+    value = "Animals closer to detectors are more likely to get detected than those further away.", 
+    label = structure("Animals closer to detectors are more likely to get detected than those further away.", html = TRUE, class = c("html", 
+    "character")), correct = TRUE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_ddabc1a", 
+    option = "It is realistic, detectors can record animal calls equally regardless of where the animal are located.", 
+    value = "It is realistic, detectors can record animal calls equally regardless of where the animal are located.", 
+    label = structure("It is realistic, detectors can record animal calls equally regardless of where the animal are located.", html = TRUE, class = c("html", 
+    "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_ce7c177", 
+    option = "Besides distance, other factors may also influence an animals' probability of detection such as the volume of it's call.", 
+    value = "Besides distance, other factors may also influence an animals' probability of detection such as the volume of it's call.", 
+    label = structure("Besides distance, other factors may also influence an animals’ probability of detection such as the volume of it’s call.", html = TRUE, class = c("html", 
+    "character")), correct = TRUE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_246ff6b", 
+    option = "Animals are evenly spread out, so distance doesn't matter. ", 
+    value = "Animals are evenly spread out, so distance doesn't matter. ", 
+    label = structure("Animals are evenly spread out, so distance doesn’t matter.", html = TRUE, class = c("html", 
+    "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
+"tutorial_quiz_answer"))), button_labels = list(submit = structure("<span data-i18n=\"button.questionsubmit\">Submit Answer<\u002fspan>", html = TRUE, class = c("html", 
+"character")), try_again = structure("<span data-i18n=\"button.questiontryagain\">Try Again<\u002fspan>", html = TRUE, class = c("html", 
+"character"))), messages = list(correct = structure("Correct!", html = TRUE, class = c("html", 
+"character")), try_again = structure("Incorrect. Be sure to select every correct answer.", html = TRUE, class = c("html", 
+"character")), incorrect = structure("Not quite!", html = TRUE, class = c("html", 
+"character")), message = NULL, post_message = NULL), ids = list(
+    answer = "quiz1-9-answer", question = "quiz1-9"), loading = NULL, 
+    random_answer_order = TRUE, allow_retry = TRUE, seed = 550971872.243434, 
+    options = list()), class = c("learnr_checkbox", "tutorial_question"
+)), session = session)
+</script>
+
+
+<script type="application/shiny-prerendered" data-context="server">
+learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "quiz1-10", question = structure("What does the buffer distance ensure regarding detection probability?", html = TRUE, class = c("html", 
+"character")), answers = list(structure(list(id = "lnr_ans_34b146f", 
+    option = "It ensures 100% detection within the buffer.", 
+    value = "It ensures 100% detection within the buffer.", label = structure("It ensures 100% detection within the buffer.", html = TRUE, class = c("html", 
+    "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_6e42cd8", 
+    option = "It prevents animals from being detected.", value = "It prevents animals from being detected.", 
+    label = structure("It prevents animals from being detected.", html = TRUE, class = c("html", 
+    "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_eec5244", 
+    option = "It provides a confidence interval for detection.", 
+    value = "It provides a confidence interval for detection.", 
+    label = structure("It provides a confidence interval for detection.", html = TRUE, class = c("html", 
+    "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_b6d1a71", 
+    option = " It ensures detection probability reaches zero within the sampled area.", 
+    value = " It ensures detection probability reaches zero within the sampled area.", 
+    label = structure("It ensures detection probability reaches zero within the sampled area.", html = TRUE, class = c("html", 
+    "character")), correct = TRUE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
+"tutorial_quiz_answer"))), button_labels = list(submit = structure("<span data-i18n=\"button.questionsubmit\">Submit Answer<\u002fspan>", html = TRUE, class = c("html", 
+"character")), try_again = structure("<span data-i18n=\"button.questiontryagain\">Try Again<\u002fspan>", html = TRUE, class = c("html", 
+"character"))), messages = list(correct = structure("Correct!", html = TRUE, class = c("html", 
+"character")), try_again = structure("Not quite!", html = TRUE, class = c("html", 
+"character")), incorrect = structure("Not quite!", html = TRUE, class = c("html", 
+"character")), message = NULL, post_message = NULL), ids = list(
+    answer = "quiz1-10-answer", question = "quiz1-10"), loading = NULL, 
+    random_answer_order = TRUE, allow_retry = TRUE, seed = 1197623743.44231, 
+    options = list()), class = c("learnr_radio", "tutorial_question"
+)), session = session)
+</script>
+</p>
+<!--html_preserve-->
+<script type="application/shiny-prerendered" data-context="dependencies">
+{"type":"list","attributes":{},"value":[{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["header-attrs"]},{"type":"character","attributes":{},"value":["2.23"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["rmd/h/pandoc"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["header-attrs.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["rmarkdown"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["2.23"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["jquery"]},{"type":"character","attributes":{},"value":["3.6.0"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/3.6.0"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["jquery-3.6.0.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["jquerylib"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["0.1.4"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["bootstrap"]},{"type":"character","attributes":{},"value":["3.3.5"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["rmd/h/bootstrap"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["viewport"]}},"value":[{"type":"character","attributes":{},"value":["width=device-width, initial-scale=1"]}]},{"type":"character","attributes":{},"value":["js/bootstrap.min.js","shim/html5shiv.min.js","shim/respond.min.js"]},{"type":"character","attributes":{},"value":["css/cerulean.min.css"]},{"type":"character","attributes":{},"value":["<style>h1 {font-size: 34px;}\n       h1.title {font-size: 38px;}\n       h2 {font-size: 30px;}\n       h3 {font-size: 24px;}\n       h4 {font-size: 18px;}\n       h5 {font-size: 16px;}\n       h6 {font-size: 12px;}\n       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}\n       pre:not([class]) { background-color: white }<\/style>"]},{"type":"NULL"},{"type":"character","attributes":{},"value":["rmarkdown"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["2.23"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["pagedtable"]},{"type":"character","attributes":{},"value":["1.1"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["rmd/h/pagedtable-1.1"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["js/pagedtable.js"]},{"type":"character","attributes":{},"value":["css/pagedtable.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["rmarkdown"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["2.23"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["highlightjs"]},{"type":"character","attributes":{},"value":["9.12.0"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["rmd/h/highlightjs"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["highlight.js"]},{"type":"character","attributes":{},"value":["textmate.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["rmarkdown"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["2.23"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["tutorial"]},{"type":"character","attributes":{},"value":["0.11.4.9000"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/tutorial"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["tutorial.js"]},{"type":"character","attributes":{},"value":["tutorial.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["0.11.4.9000"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["i18n"]},{"type":"character","attributes":{},"value":["21.6.10"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/i18n"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["i18next.min.js","tutorial-i18n-init.js"]},{"type":"NULL"},{"type":"character","attributes":{},"value":["<script id=\"i18n-cstm-trns\" type=\"application/json\">{\"language\":\"en\",\"resources\":{\"en\":{\"translation\":{\"button\":{\"runcode\":\"Run Code\",\"runcodetitle\":\"$t(button.runcode) ({{kbd}})\",\"hint\":\"Hint\",\"hint_plural\":\"Hints\",\"hinttitle\":\"$t(button.hint)\",\"hintnext\":\"Next Hint\",\"hintprev\":\"Previous Hint\",\"solution\":\"Solution\",\"solutiontitle\":\"$t(button.solution)\",\"copyclipboard\":\"Copy to Clipboard\",\"startover\":\"Start Over\",\"startovertitle\":\"$t(button.startover)\",\"continue\":\"Continue\",\"submitanswer\":\"Submit Answer\",\"submitanswertitle\":\"$t(button.submitanswer)\",\"previoustopic\":\"Previous Topic\",\"nexttopic\":\"Next Topic\",\"questionsubmit\":\"$t(button.submitanswer)\",\"questiontryagain\":\"Try Again\"},\"text\":{\"startover\":\"Start Over\",\"areyousure\":\"Are you sure you want to start over? (all exercise progress will be reset)\",\"youmustcomplete\":\"You must complete the\",\"exercise\":\"exercise\",\"exercise_plural\":\"exercises\",\"inthissection\":\"in this section before continuing.\",\"code\":\"Code\",\"enginecap\":\"{{engine}} $t(text.code)\",\"quiz\":\"Quiz\",\"blank\":\"blank\",\"blank_plural\":\"blanks\",\"exercisecontainsblank\":\"This exercise contains {{count}} $t(text.blank).\",\"pleasereplaceblank\":\"Please replace {{blank}} with valid code.\",\"unparsable\":\"It looks like this might not be valid R code. R cannot determine how to turn your text into a complete command. You may have forgotten to fill in a blank, to remove an underscore, to include a comma between arguments, or to close an opening <code>&quot;<\\/code>, <code>'<\\/code>, <code>(<\\/code> or <code>{<\\/code> with a matching <code>&quot;<\\/code>, <code>'<\\/code>, <code>)<\\/code> or <code>}<\\/code>.\\n\",\"unparsablequotes\":\"<p>It looks like your R code contains specially formatted quotation marks or &quot;curly&quot; quotes (<code>{{character}}<\\/code>) around character strings, making your code invalid. R requires character values to be contained in straight quotation marks (<code>&quot;<\\/code> or <code>'<\\/code>).<\\/p> {{code}} <p>Don't worry, this is a common source of errors when you copy code from another app that applies its own formatting to text. You can try replacing the code on that line with the following. There may be other places that need to be fixed, too.<\\/p> {{suggestion}}\\n\",\"unparsableunicode\":\"<p>It looks like your R code contains an unexpected special character (<code>{{character}}<\\/code>) that makes your code invalid.<\\/p> {{code}} <p>Sometimes your code may contain a special character that looks like a regular character, especially if you copy and paste the code from another app. Try deleting the special character from your code and retyping it manually.<\\/p>\\n\",\"unparsableunicodesuggestion\":\"<p>It looks like your R code contains an unexpected special character (<code>{{character}}<\\/code>) that makes your code invalid.<\\/p> {{code}} <p>Sometimes your code may contain a special character that looks like a regular character, especially if you copy and paste the code from another app. You can try replacing the code on that line with the following. There may be other places that need to be fixed, too.<\\/p> {{suggestion}}\\n\",\"and\":\"and\",\"or\":\"or\",\"listcomma\":\", \",\"oxfordcomma\":\",\"}}},\"fr\":{\"translation\":{\"button\":{\"runcode\":\"Lancer le Code\",\"runcodetitle\":\"$t(button.runcode) ({{kbd}})\",\"hint\":\"Indication\",\"hint_plural\":\"Indications\",\"hinttitle\":\"$t(button.hint)\",\"hintnext\":\"Indication Suivante\",\"hintprev\":\"Indication Précédente\",\"solution\":\"Solution\",\"solutiontitle\":\"$t(button.solution)\",\"copyclipboard\":\"Copier dans le Presse-papier\",\"startover\":\"Recommencer\",\"startovertitle\":\"$t(button.startover)\",\"continue\":\"Continuer\",\"submitanswer\":\"Soumettre\",\"submitanswertitle\":\"$t(button.submitanswer)\",\"previoustopic\":\"Chapitre Précédent\",\"nexttopic\":\"Chapitre Suivant\",\"questionsubmit\":\"$t(button.submitanswer)\",\"questiontryagain\":\"Réessayer\"},\"text\":{\"startover\":\"Recommencer\",\"areyousure\":\"Êtes-vous certains de vouloir recommencer? (La progression sera remise à zéro)\",\"youmustcomplete\":\"Vous devez d'abord compléter\",\"exercise\":\"l'exercice\",\"exercise_plural\":\"des exercices\",\"inthissection\":\"de cette section avec de continuer.\",\"code\":\"Code\",\"enginecap\":\"$t(text.code) {{engine}}\",\"quiz\":\"Quiz\",\"and\":\"et\",\"or\":\"ou\",\"oxfordcomma\":\"\"}}},\"es\":{\"translation\":{\"button\":{\"runcode\":\"Ejecutar código\",\"runcodetitle\":\"$t(button.runcode) ({{kbd}})\",\"hint\":\"Pista\",\"hint_plural\":\"Pistas\",\"hinttitle\":\"$t(button.hint)\",\"hintnext\":\"Siguiente pista\",\"hintprev\":\"Pista anterior\",\"solution\":\"Solución\",\"solutiontitle\":\"$t(button.solution)\",\"copyclipboard\":\"Copiar al portapapeles\",\"startover\":\"Reiniciar\",\"startovertitle\":\"$t(button.startover)\",\"continue\":\"Continuar\",\"submitanswer\":\"Enviar respuesta\",\"submitanswertitle\":\"$t(button.submitanswer)\",\"previoustopic\":\"Tema anterior\",\"nexttopic\":\"Tema siguiente\",\"questionsubmit\":\"$t(button.submitanswer)\",\"questiontryagain\":\"Volver a intentar\"},\"text\":{\"startover\":\"Reiniciar\",\"areyousure\":\"¿De verdad quieres empezar de nuevo? (todo el progreso del ejercicio se perderá)\",\"youmustcomplete\":\"Debes completar\",\"exercise\":\"el ejercicio\",\"exercise_plural\":\"los ejercicios\",\"inthissection\":\"en esta sección antes de continuar.\",\"code\":\"Código\",\"enginecap\":\"$t(text.code) {{engine}}\",\"quiz\":\"Cuestionario\",\"and\":\"y\",\"or\":\"o\",\"oxfordcomma\":\"\"}}},\"pt\":{\"translation\":{\"button\":{\"runcode\":\"Executar código\",\"runcodetitle\":\"$t(button.runcode) ({{kbd}})\",\"hint\":\"Dica\",\"hint_plural\":\"Dicas\",\"hinttitle\":\"$t(button.hint)\",\"hintnext\":\"Próxima dica\",\"hintprev\":\"Dica anterior\",\"solution\":\"Solução\",\"solutiontitle\":\"$t(button.solution)\",\"copyclipboard\":\"Copiar para a área de transferência\",\"startover\":\"Reiniciar\",\"startovertitle\":\"$t(button.startover)\",\"continue\":\"Continuar\",\"submitanswer\":\"Enviar resposta\",\"submitanswertitle\":\"$t(button.submitanswer)\",\"previoustopic\":\"Tópico anterior\",\"nexttopic\":\"Próximo tópico\",\"questionsubmit\":\"$t(button.submitanswer)\",\"questiontryagain\":\"Tentar novamente\"},\"text\":{\"startover\":\"Reiniciar\",\"areyousure\":\"Tem certeza que deseja começar novamente? (todo o progresso feito será perdido)\",\"youmustcomplete\":\"Você deve completar\",\"exercise\":\"o exercício\",\"exercise_plural\":\"os exercícios\",\"inthissection\":\"nesta seção antes de continuar.\",\"code\":\"Código\",\"enginecap\":\"$t(text.code) {{engine}}\",\"quiz\":\"Quiz\",\"and\":\"e\",\"or\":\"ou\",\"oxfordcomma\":\"\"}}},\"tr\":{\"translation\":{\"button\":{\"runcode\":\"Çalıştırma Kodu\",\"runcodetitle\":\"$t(button.runcode) ({{kbd}})\",\"hint\":\"Ipucu\",\"hint_plural\":\"İpuçları\",\"hinttitle\":\"$t(button.hint)\",\"hintnext\":\"Sonraki İpucu\",\"hintprev\":\"Önceki İpucu\",\"solution\":\"Çözüm\",\"solutiontitle\":\"$t(button.solution)\",\"copyclipboard\":\"Pano'ya Kopyala\",\"startover\":\"Baştan Başlamak\",\"startovertitle\":\"$t(button.startover)\",\"continue\":\"Devam et\",\"submitanswer\":\"Cevabı onayla\",\"submitanswertitle\":\"$t(button.submitanswer)\",\"previoustopic\":\"Önceki Konu\",\"nexttopic\":\"Sonraki Konu\",\"questionsubmit\":\"$t(button.submitanswer)\",\"questiontryagain\":\"Tekrar Deneyin\"},\"text\":{\"startover\":\"Baştan Başlamak\",\"areyousure\":\"Baştan başlamak istediğinizden emin misiniz? (tüm egzersiz ilerlemesi kaybolacak)\",\"youmustcomplete\":\"Tamamlamalısın\",\"exercise\":\"egzersiz\",\"exercise_plural\":\"egzersizler\",\"inthissection\":\"devam etmeden önce bu bölümde\",\"code\":\"Kod\",\"enginecap\":\"$t(text.code) {{engine}}\",\"quiz\":\"Sınav\",\"oxfordcomma\":\"\"}}},\"emo\":{\"translation\":{\"button\":{\"runcode\":\"🏃\",\"runcodetitle\":\"$t(button.runcode) ({{kbd}})\",\"hint\":\"💡\",\"hint_plural\":\"$t(button.hint)\",\"hinttitle\":\"$t(button.hint)\",\"solution\":\"🎯\",\"solutiontitle\":\"$t(button.solution)\",\"copyclipboard\":\"📋\",\"startover\":\"⏮\",\"startovertitle\":\"Start Over\",\"continue\":\"✅\",\"submitanswer\":\"🆗\",\"submitanswertitle\":\"Submit Answer\",\"previoustopic\":\"⬅\",\"nexttopic\":\"➡\",\"questionsubmit\":\"$t(button.submitanswer)\",\"questiontryagain\":\"🔁\"},\"text\":{\"startover\":\"⏮\",\"areyousure\":\"🤔\",\"youmustcomplete\":\"⚠️ 👉 🧑‍💻\",\"exercise\":\"\",\"exercise_plural\":\"\",\"inthissection\":\"\",\"code\":\"💻\",\"enginecap\":\"$t(text.code) {{engine}}\",\"oxfordcomma\":\"\"}}},\"eu\":{\"translation\":{\"button\":{\"runcode\":\"Kodea egikaritu\",\"runcodetitle\":\"$t(button.runcode) ({{kbd}})\",\"hint\":\"Laguntza\",\"hint_plural\":\"Laguntza\",\"hinttitle\":\"$t(button.hint)\",\"hintnext\":\"Aurreko laguntza\",\"hintprev\":\"Hurrengo laguntza\",\"solution\":\"Ebazpena\",\"solutiontitle\":\"$t(button.solution)\",\"copyclipboard\":\"Arbelean kopiatu\",\"startover\":\"Berrabiarazi\",\"startovertitle\":\"$t(button.startover)\",\"continue\":\"Jarraitu\",\"submitanswer\":\"Erantzuna bidali\",\"submitanswertitle\":\"$t(button.submitanswer)\",\"previoustopic\":\"Aurreko atala\",\"nexttopic\":\"Hurrengo atala\",\"questionsubmit\":\"$t(button.submitanswer)\",\"questiontryagain\":\"Berriro saiatu\"},\"text\":{\"startover\":\"Berrabiarazi\",\"areyousure\":\"Berriro hasi nahi duzu? (egindako lana galdu egingo da)\",\"youmustcomplete\":\"Aurrera egin baino lehen atal honetako\",\"exercise\":\"ariketa egin behar duzu.\",\"exercise_plural\":\"ariketak egin behar dituzu.\",\"inthissection\":\"\",\"code\":\"Kodea\",\"enginecap\":\"$t(text.code) {{engine}}\",\"quiz\":\"Galdetegia\",\"oxfordcomma\":\"\"}}},\"de\":{\"translation\":{\"button\":{\"runcode\":\"Code ausführen\",\"runcodetitle\":\"$t(button.runcode) ({{kbd}})\",\"hint\":\"Tipp\",\"hint_plural\":\"Tipps\",\"hinttitle\":\"$t(button.hint)\",\"hintnext\":\"Nächster Tipp\",\"hintprev\":\"Vorheriger Tipp\",\"solution\":\"Lösung\",\"solutiontitle\":\"$t(button.solution)\",\"copyclipboard\":\"In die Zwischenablage kopieren\",\"startover\":\"Neustart\",\"startovertitle\":\"$t(button.startover)\",\"continue\":\"Weiter\",\"submitanswer\":\"Antwort einreichen\",\"submitanswertitle\":\"$t(button.submitanswer)\",\"previoustopic\":\"Vorheriges Kapitel\",\"nexttopic\":\"Nächstes Kapitel\",\"questionsubmit\":\"$t(button.submitanswer)\",\"questiontryagain\":\"Nochmal versuchen\"},\"text\":{\"startover\":\"Neustart\",\"areyousure\":\"Bist du sicher, dass du neustarten willst? (der gesamte Lernfortschritt wird gelöscht)\",\"youmustcomplete\":\"Vervollstädinge\",\"exercise\":\"die Übung\",\"exercise_plural\":\"die Übungen\",\"inthissection\":\"in diesem Kapitel, bevor du fortfährst.\",\"code\":\"Code\",\"enginecap\":\"$t(text.code) {{engine}}\",\"quiz\":\"Quiz\",\"blank\":\"Lücke\",\"blank_plural\":\"Lücken\",\"pleasereplaceblank\":\"Bitte ersetze {{blank}} mit gültigem Code.\",\"unparsable\":\"Dies scheint kein gültiger R Code zu sein. R kann deinen Text nicht in einen gültigen Befehl übersetzen. Du hast vielleicht vergessen, die Lücke zu füllen, einen Unterstrich zu entfernen, ein Komma zwischen Argumente zu setzen oder ein eröffnendes <code>&quot;<\\/code>, <code>'<\\/code>, <code>(<\\/code> oder <code>{<\\/code> mit einem zugehörigen <code>&quot;<\\/code>, <code>'<\\/code>, <code>)<\\/code> oder <code>}<\\/code> zu schließen.\\n\",\"and\":\"und\",\"or\":\"oder\",\"listcomma\":\", \",\"oxfordcomma\":\",\"}}},\"ko\":{\"translation\":{\"button\":{\"runcode\":\"코드 실행\",\"runcodetitle\":\"$t(button.runcode) ({{kbd}})\",\"hint\":\"힌트\",\"hint_plural\":\"힌트들\",\"hinttitle\":\"$t(button.hint)\",\"hintnext\":\"다음 힌트\",\"hintprev\":\"이전 힌트\",\"solution\":\"솔루션\",\"solutiontitle\":\"$t(button.solution)\",\"copyclipboard\":\"클립보드에 복사\",\"startover\":\"재학습\",\"startovertitle\":\"$t(button.startover)\",\"continue\":\"다음 학습으로\",\"submitanswer\":\"정답 제출\",\"submitanswertitle\":\"$t(button.submitanswer)\",\"previoustopic\":\"이전 토픽\",\"nexttopic\":\"다음 토픽\",\"questionsubmit\":\"$t(button.submitanswer)\",\"questiontryagain\":\"재시도\"},\"text\":{\"startover\":\"재학습\",\"areyousure\":\"다시 시작 하시겠습니까? (모든 예제의 진행 정보가 재설정됩니다)\",\"youmustcomplete\":\"당신은 완료해야 합니다\",\"exercise\":\"연습문제\",\"exercise_plural\":\"연습문제들\",\"inthissection\":\"이 섹션을 실행하기 전에\",\"code\":\"코드\",\"enginecap\":\"$t(text.code) {{engine}}\",\"quiz\":\"퀴즈\",\"blank\":\"공백\",\"blank_plural\":\"공백들\",\"exercisecontainsblank\":\"이 연습문제에는 {{count}}개의 $t(text.blank)이 포함되어 있습니다.\",\"pleasereplaceblank\":\"{{blank}}를 유효한 코드로 바꾸십시오.\",\"unparsable\":\"이것은 유효한 R 코드가 아닐 수 있습니다. R은 텍스트를 완전한 명령으로 변환하는 방법을 결정할 수 없습니다. 당신은 공백이나 밑줄을 대체하여 채우기, 인수를 컴마로 구분하기, 또는 <code>&quot;<\\/code>, <code>'<\\/code>, <code>(<\\/code> , <code>{<\\/code>로 시작하는 구문을 닫는 <code>&quot;<\\/code>, <code>'<\\/code>, <code>)<\\/code>, <code>}<\\/code>을 잊었을 수도 있습니다.\\n\",\"and\":\"그리고\",\"or\":\"혹은\",\"listcomma\":\", \",\"oxfordcomma\":\"\"}}},\"zh\":{\"translation\":{\"button\":{\"runcode\":\"运行代码\",\"runcodetitle\":\"$t(button.runcode) ({{kbd}})\",\"hint\":\"提示\",\"hint_plural\":\"提示\",\"hinttitle\":\"$t(button.hint)\",\"hintnext\":\"下一个提示\",\"hintprev\":\"上一个提示\",\"solution\":\"答案\",\"solutiontitle\":\"$t(button.solution)\",\"copyclipboard\":\"复制到剪切板\",\"startover\":\"重新开始\",\"startovertitle\":\"$t(button.startover)\",\"continue\":\"继续\",\"submitanswer\":\"提交答案\",\"submitanswertitle\":\"$t(button.submitanswer)\",\"previoustopic\":\"上一专题\",\"nexttopic\":\"下一专题\",\"questionsubmit\":\"$t(button.submitanswer)\",\"questiontryagain\":\"再试一次\"},\"text\":{\"startover\":\"重置\",\"areyousure\":\"你确定要重新开始吗? (所有当前进度将被重置)\",\"youmustcomplete\":\"你必须完成\",\"exercise\":\"练习\",\"exercise_plural\":\"练习\",\"inthissection\":\"在进行本节之前\",\"code\":\"代码\",\"enginecap\":\"$t(text.code) {{engine}}\",\"quiz\":\"测试\",\"blank\":\"空\",\"blank_plural\":\"空\",\"exercisecontainsblank\":\"本练习包含{{count}}个$t(text.blank)\",\"pleasereplaceblank\":\"请在{{blank}}内填写恰当的代码\",\"unparsable\":\"这似乎不是有效的R代码。 R不知道如何将您的文本转换为完整的命令。 您是否忘了填空，忘了删除下划线，忘了在参数之间包含逗号，或者是忘了用<code>&quot;<\\/code>, <code>'<\\/code>, <code>)<\\/code>,<code>}<\\/code>来封闭<code>&quot;<\\/code>, <code>'<\\/code>, <code>(<\\/code>。 or <code>{<\\/code>。\\n\",\"unparsablequotes\":\"<p>您的R代码中似乎含有特殊格式的引号，或者弯引号(<code>{{character}}<\\/code>) 在字符串前后，在R中字符串应该被直引号(<code>&quot;<\\/code> 或者 <code>'<\\/code>)包裹。<\\/p> {{code}} <p>别担心，该错误经常在复制粘贴包含格式的代码时遇到， 您可以尝试将该行中的代码替换为以下代码，也许还有其他地方需要修改。<\\/p> {{suggestion}}\\n\",\"unparsableunicode\":\"<p>您的代码中似乎包含有异常字符(<code>{{character}}<\\/code>),导致代码无效。<\\/p> {{code}} <p>有时候你的代码可能含有看似正常字符的特殊字符，特别是当你复制粘贴其他来源代码的时候。 请试着删除这些特殊字符,重新输入<\\/p>\\n\",\"unparsableunicodesuggestion\":\"<p>您的代码中似乎包含有异常字符(<code>{{character}}<\\/code>),导致代码无效。<\\/p> {{code}} <p>有时候你的代码可能含有看似正常字符的特殊字符，特别是当你复制粘贴其他来源代码的时候。 请试着删除这些特殊字符,重新输入<\\/p>\\n\",\"and\":\"且\",\"or\":\"或\",\"listcomma\":\",\",\"oxfordcomma\":\",\"}}},\"pl\":{\"translation\":{\"button\":{\"runcode\":\"Uruchom kod\",\"runcodetitle\":\"$t(button.runcode) ({{kbd}})\",\"hint\":\"Podpowiedź\",\"hint_plural\":\"Podpowiedzi\",\"hinttitle\":\"$t(button.hint)\",\"hintnext\":\"Następna podpowiedź\",\"hintprev\":\"Poprzednia podpowiedź\",\"solution\":\"Rozwiązanie\",\"solutiontitle\":\"$t(button.solution)\",\"copyclipboard\":\"Kopiuj do schowka\",\"startover\":\"Zacznij od początku\",\"startovertitle\":\"$t(button.startover)\",\"continue\":\"Kontynuuj\",\"submitanswer\":\"Wyślij\",\"submitanswertitle\":\"$t(button.submitanswer)\",\"previoustopic\":\"Poprzednia sekcja\",\"nexttopic\":\"Następna sekcja\",\"questionsubmit\":\"$t(button.submitanswer)\",\"questiontryagain\":\"Spróbuj ponownie\"},\"text\":{\"startover\":\"Zacznij od początku\",\"areyousure\":\"Czy na pewno chcesz zacząć od początku? (cały postęp w zadaniu zostanie utracony)\",\"youmustcomplete\":\"Musisz ukończyć\",\"exercise\":\"ćwiczenie\",\"exercise_plural\":\"ćwiczenia\",\"inthissection\":\"w tej sekcji przed kontynuowaniem\",\"code\":\"Kod\",\"enginecap\":\"$t(text.code) {{engine}}\",\"quiz\":\"Quiz\",\"blank\":\"luka\",\"blank_plural\":\"luk(i)\",\"exercisecontainsblank\":\"To ćwiczenie zawiera {{count}} $t(text.blank).\",\"pleasereplaceblank\":\"Proszę uzupełnić {{blank}} prawidłowym kodem.\",\"unparsable\":\"Wygląda na to, że może to nie być prawidłowy kod R. R nie jest w stanie przetworzyć Twojego tekstu na polecenie. Mogłeś(-aś) zapomnieć wypełnić luki, usunąć podkreślnik, umieścić przecinka między argumentami, lub zamknąć znak <code>&quot;<\\/code>, <code>'<\\/code>, <code>(<\\/code> lub <code>{<\\/code> odpowiadającym <code>&quot;<\\/code>, <code>'<\\/code>, <code>)<\\/code> lub <code>}<\\/code>.\\n\",\"unparsablequotes\":\"<p>Wygląda na to, że Twój kod zawiera szczególnie sformatowane cudzysłowy lub cudzysłowy typograficzne (<code>{{character}}<\\/code>) przy ciągach znaków, co sprawia, że kod jest niepoprawny. R wymaga cudzysłowów prostych (<code>&quot;<\\/code> albo <code>'<\\/code>).<\\/p> {{code}} <p>Nie martw się, to powszechne źródło błędów, gdy kopiuje się kod z innego programu, który sam formatuje teskt. Możesz spróbować zastąpić swój kod następującym kodem. Mogą być też inne miejsca, które wymagają poprawienia.<\\/p> {{suggestion}}\\n\",\"unparsableunicode\":\"<p>Wygląda na to, że Twój kod zawiera niespodziewany znak specjalny (<code>{{character}}<\\/code>), co sprawia, że kod jest niepoprawny.<\\/p> {{code}} <p>Czasami Twój kod może zawierać znak specjalny, który wygląda jak zwykły znak, zwłaszcza jeśli kopiujesz kod z innego programu. Spróbuj usunąć znak specjalny i wpisać do ponownie ręcznie.<\\/p>\\n\",\"unparsableunicodesuggestion\":\"<p>Wygląda na to, że Twój kod zawiera niespodziewany znak specjalny (<code>{{character}}<\\/code>), co sprawia, że kod jest niepoprawny.<\\/p> {{code}} <p>Czasami Twój kod może zawierać znak specjalny, który wygląda jak zwykły znak, zwłaszcza jeśli kopiujesz kod z innego programu. Możesz spróbować zastąpić swój kod następującym kodem. Mogą być też inne miejsca, które wymagają poprawienia.<\\/p> {{suggestion}}\\n\",\"and\":\"i\",\"or\":\"lub\",\"listcomma\":\", \",\"oxfordcomma\":\"\"}}}}}<\/script>"]},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["0.11.4.9000"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["tutorial-format"]},{"type":"character","attributes":{},"value":["0.11.4.9000"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["rmarkdown/templates/tutorial/resources"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["tutorial-format.js"]},{"type":"character","attributes":{},"value":["tutorial-format.css","rstudio-theme.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["0.11.4.9000"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["jquery"]},{"type":"character","attributes":{},"value":["3.6.0"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/3.6.0"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["jquery-3.6.0.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["jquerylib"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["0.1.4"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["navigation"]},{"type":"character","attributes":{},"value":["1.1"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["rmd/h/navigation-1.1"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["tabsets.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["rmarkdown"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["2.23"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["highlightjs"]},{"type":"character","attributes":{},"value":["9.12.0"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["rmd/h/highlightjs"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["highlight.js"]},{"type":"character","attributes":{},"value":["default.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["rmarkdown"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["2.23"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["jquery"]},{"type":"character","attributes":{},"value":["3.6.0"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/3.6.0"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["jquery-3.6.0.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["jquerylib"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["0.1.4"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["font-awesome"]},{"type":"character","attributes":{},"value":["6.4.0"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["fontawesome"]}]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["css/all.min.css","css/v4-shims.min.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["fontawesome"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["0.5.1"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["bootbox"]},{"type":"character","attributes":{},"value":["5.5.2"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/bootbox"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["bootbox.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["0.11.4.9000"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["idb-keyvalue"]},{"type":"character","attributes":{},"value":["3.2.0"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/idb-keyval"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["idb-keyval-iife-compat.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[false]},{"type":"character","attributes":{},"value":["0.11.4.9000"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["tutorial"]},{"type":"character","attributes":{},"value":["0.11.4.9000"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/tutorial"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["tutorial.js"]},{"type":"character","attributes":{},"value":["tutorial.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["0.11.4.9000"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["ionrangeslider-skin"]},{"type":"character","attributes":{},"value":["0.7.6"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["href","file"]}},"value":[{"type":"character","attributes":{},"value":["shinyWidgets/ion-rangeslider"]},{"type":"character","attributes":{},"value":["assets/ion-rangeslider"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["jquery.initialize.min.js","custom-skin.js"]},{"type":"character","attributes":{},"value":["ion.rangeSlider.min.css"]},{"type":"character","attributes":{},"value":["<script type='custom-slider-skin'>{\"name\":\"flat\"}<\/script>"]},{"type":"NULL"},{"type":"character","attributes":{},"value":["shinyWidgets"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["0.7.6"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["selectize"]},{"type":"character","attributes":{},"value":["0.12.4"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["www/shared/selectize"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["js/selectize.min.js","accessibility/js/selectize-plugin-a11y.min.js"]},{"type":"character","attributes":{},"value":["css/selectize.bootstrap3.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["shiny"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["1.7.4"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["ionrangeslider-javascript"]},{"type":"character","attributes":{},"value":["2.3.1"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["www/shared/ionrangeslider"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["js/ion.rangeSlider.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["shiny"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["1.7.4"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["strftime"]},{"type":"character","attributes":{},"value":["0.9.2"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["www/shared/strftime"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["strftime-min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["shiny"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["1.7.4"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["ionrangeslider-css"]},{"type":"character","attributes":{},"value":["2.3.1"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["www/shared/ionrangeslider"]}]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["css/ion.rangeSlider.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["shiny"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["1.7.4"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["htmlwidgets"]},{"type":"character","attributes":{},"value":["1.6.2"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["www"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["htmlwidgets.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["htmlwidgets"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["1.6.2"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["plotly-binding"]},{"type":"character","attributes":{},"value":["4.10.1"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["htmlwidgets"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["plotly.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["plotly"]},{"type":"logical","attributes":{},"value":[false]},{"type":"character","attributes":{},"value":["4.10.1"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["jquery"]},{"type":"character","attributes":{},"value":["3.6.0"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["www/shared"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["jquery.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["shiny"]},{"type":"logical","attributes":{},"value":[false]},{"type":"character","attributes":{},"value":["1.7.4"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["ionrangeslider-javascript"]},{"type":"character","attributes":{},"value":["2.3.1"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["www/shared/ionrangeslider"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["js/ion.rangeSlider.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["shiny"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["1.7.4"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["strftime"]},{"type":"character","attributes":{},"value":["0.9.2"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["www/shared/strftime"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["strftime-min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["shiny"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["1.7.4"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["ionrangeslider-css"]},{"type":"character","attributes":{},"value":["2.3.1"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["www/shared/ionrangeslider"]}]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["css/ion.rangeSlider.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["shiny"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["1.7.4"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["bootstrap"]},{"type":"character","attributes":{},"value":["3.4.1"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["www/shared/bootstrap"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["viewport"]}},"value":[{"type":"character","attributes":{},"value":["width=device-width, initial-scale=1"]}]},{"type":"character","attributes":{},"value":["js/bootstrap.min.js","accessibility/js/bootstrap-accessibility.min.js"]},{"type":"character","attributes":{},"value":["css/bootstrap.min.css","accessibility/css/bootstrap-accessibility.min.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["shiny"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["1.7.4"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["jquery"]},{"type":"character","attributes":{},"value":["3.6.0"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["www/shared"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["jquery.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["shiny"]},{"type":"logical","attributes":{},"value":[false]},{"type":"character","attributes":{},"value":["1.7.4"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["ionrangeslider-javascript"]},{"type":"character","attributes":{},"value":["2.3.1"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["www/shared/ionrangeslider"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["js/ion.rangeSlider.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["shiny"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["1.7.4"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["strftime"]},{"type":"character","attributes":{},"value":["0.9.2"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["www/shared/strftime"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["strftime-min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["shiny"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["1.7.4"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["ionrangeslider-css"]},{"type":"character","attributes":{},"value":["2.3.1"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["www/shared/ionrangeslider"]}]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["css/ion.rangeSlider.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["shiny"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["1.7.4"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["bootstrap"]},{"type":"character","attributes":{},"value":["3.4.1"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["www/shared/bootstrap"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["viewport"]}},"value":[{"type":"character","attributes":{},"value":["width=device-width, initial-scale=1"]}]},{"type":"character","attributes":{},"value":["js/bootstrap.min.js","accessibility/js/bootstrap-accessibility.min.js"]},{"type":"character","attributes":{},"value":["css/bootstrap.min.css","accessibility/css/bootstrap-accessibility.min.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["shiny"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["1.7.4"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["jquery"]},{"type":"character","attributes":{},"value":["3.6.0"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["www/shared"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["jquery.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["shiny"]},{"type":"logical","attributes":{},"value":[false]},{"type":"character","attributes":{},"value":["1.7.4"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["htmlwidgets"]},{"type":"character","attributes":{},"value":["1.6.2"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["www"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["htmlwidgets.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["htmlwidgets"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["1.6.2"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["datatables-css"]},{"type":"character","attributes":{},"value":["0.0.0"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["htmlwidgets/css"]}]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["datatables-crosstalk.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["DT"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["0.27"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["datatables-binding"]},{"type":"character","attributes":{},"value":["0.27"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["htmlwidgets"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["datatables.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["DT"]},{"type":"logical","attributes":{},"value":[false]},{"type":"character","attributes":{},"value":["0.27"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["crosstalk"]},{"type":"character","attributes":{},"value":["1.2.0"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["www"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["js/crosstalk.min.js"]},{"type":"character","attributes":{},"value":["css/crosstalk.min.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["crosstalk"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["1.2.0"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["bootstrap"]},{"type":"character","attributes":{},"value":["3.4.1"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["www/shared/bootstrap"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["viewport"]}},"value":[{"type":"character","attributes":{},"value":["width=device-width, initial-scale=1"]}]},{"type":"character","attributes":{},"value":["js/bootstrap.min.js","accessibility/js/bootstrap-accessibility.min.js"]},{"type":"character","attributes":{},"value":["css/bootstrap.min.css","accessibility/css/bootstrap-accessibility.min.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["shiny"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["1.7.4"]}]}]}
+</script>
+<!--/html_preserve-->
+<!--html_preserve-->
+<script type="application/shiny-prerendered" data-context="execution_dependencies">
+{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["packages"]}},"value":[{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["packages","version"]},"class":{"type":"character","attributes":{},"value":["data.frame"]},"row.names":{"type":"integer","attributes":{},"value":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100,101,102,103,104,105,106,107,108,109,110,111,112,113,114,115,116,117,118,119,120,121,122,123,124,125,126,127,128,129,130,131,132,133,134,135,136,137]}},"value":[{"type":"character","attributes":{},"value":["abind","acre","ash","backports","base","brio","bslib","cachem","checkmate","class","classInt","cli","codetools","colorspace","commonmark","compiler","crayon","crosstalk","data.table","datasets","DBI","digest","dplyr","DT","e1071","ellipsis","evaluate","extrafont","extrafontdb","fansi","farver","fastmap","fontawesome","forcats","generics","ggalt","gganimate","ggforce","ggfun","ggimage","ggplot2","ggplotify","glue","graphics","grDevices","grid","gridExtra","gridGraphics","gtable","highr","hms","htmltools","htmlwidgets","httpuv","httr","jquerylib","jsonlite","KernSmooth","knitr","labeling","later","lattice","lazyeval","learnr","lifecycle","lubridate","magick","magrittr","maps","markdown","MASS","Matrix","memoise","methods","metR","mgcv","mime","munsell","nlme","parallel","pillar","pkgconfig","plotly","polyclip","prettyunits","progress","proj4","promises","proxy","purrr","R6","raster","RColorBrewer","Rcpp","RcppNumerical","RcppParallel","readr","rlang","rmarkdown","rprojroot","rstudioapi","Rttf2pt1","sass","scales","secr","sf","shiny","shinydashboard","shinyWidgets","sp","splines","stats","stringi","stringr","terra","testthat","tibble","tidyr","tidyselect","tidyverse","timechange","tippy","TMB","tools","tweenr","tzdb","units","utf8","utils","vctrs","viridis","viridisLite","withr","xfun","xtable","yaml","yulab.utils"]},{"type":"character","attributes":{},"value":["1.4-5","0.1.0","1.0-15","1.4.1","4.2.2","1.1.3","0.5.0","1.0.8","2.2.0","7.3-21","0.4-9","3.6.1","0.2-19","2.1-0","1.9.0","4.2.2","1.5.2","1.2.0","1.14.8","4.2.2","1.1.3","0.6.33","1.1.2","0.27","1.7-13","0.3.2","0.21","0.19","1.0","1.0.4","2.1.1","1.1.1","0.5.1","1.0.0","0.1.3","0.4.0","1.0.8","0.4.1","0.1.1","0.3.3","3.4.3","0.1.1","1.6.2","4.2.2","4.2.2","4.2.2","2.3","0.5-1","0.3.4","0.10","1.1.3","0.5.5","1.6.2","1.6.11","1.4.6","0.1.4","1.8.7","2.23-20","1.43","0.4.2","1.3.1","0.20-45","0.2.2","0.11.4.9000","1.0.3","1.9.2","2.7.4","2.0.3","3.4.1","1.7","7.3-58.3","1.5-3","2.0.1","4.2.2","0.14.0","1.8-42","0.12","0.5.0","3.1-162","4.2.2","1.9.0","2.0.3","4.10.1","1.10-4","1.1.1","1.2.2","1.0-12","1.2.0.1","0.4-27","1.0.1","2.5.1","3.6-23","1.1-3","1.0.11","0.5-0","5.1.7","2.1.4","1.1.1","2.23","2.0.3","0.15.0","1.3.12","0.4.6","1.2.1","4.6.1","1.0-14","1.7.4","0.7.2","0.7.6","2.0-0","4.2.2","4.2.2","1.7.12","1.5.0","1.7-39","3.1.10","3.2.1","1.3.0","1.2.0","2.0.0","0.2.0","0.1.0","1.9.6","4.2.2","2.0.2","0.4.0","0.8-3","1.2.3","4.2.2","0.6.3","0.6.4","0.4.2","2.5.0","0.39","1.8-4","2.3.7","0.0.6"]}]}]}
+</script>
+<!--/html_preserve-->
+</div>
+</div>
+
+</article> <!-- topics -->
+
+<div class="topicsContainer">
+<div class="topicsPositioner">
+<div class="band">
+<div class="bandContent topicsListContainer">
+
+<!-- begin doc-metadata -->
+<div id="doc-metadata">
+<h1 class="title toc-ignore" style="display:none;">Chapter 3</h1>
+</div>
+<!-- end doc-metadata -->
+
+</div> <!-- bandContent.topicsListContainer -->
+</div> <!-- band -->
+</div> <!-- topicsPositioner -->
+</div> <!-- topicsContainer -->
+
+
+</main> <!-- bandContent page -->
+</div> <!-- pageContent band -->
+
+
+
+<!-- Build Tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("section-TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
+<script>
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+</script>
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+
+</body>
+
+</html>
