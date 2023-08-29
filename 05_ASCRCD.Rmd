@@ -15,11 +15,11 @@ runtime: shiny_prerendered
 
 We'll be working with acoustic data collected a few years back on a population of Cape Moss frogs. This data was gathered by <a href="https://besjournals.onlinelibrary.wiley.com/doi/full/10.1111/2041-210X.12291" target="_blank">Stevenson et al. (2015)</a>, who also authored the paper that details the specific aSCR-CD model we'll be using. In their survey, they positioned six microphones in a somewhat circular arrangement within the frogs' habitat. We use the same 25-second subset of the recording as in the paper, which was processed using PAMGUARD to identify the frog's calls.
 
-For those curious to visualize the setup right now, you can check out the arrangement by following this link <a href="https://www.youtube.com/watch?v=JTYFYtZJXro&t=56s" target="_blank">here</a>. The video showcases the microphone configuration and offers a glimpse into the aSCR method. As you watch, you'll be treated to audio recordings of the Cape Moss frogs and a probable region from which each call originated as estimated by an aSCR model.
+For those curious to visualise the setup right now, you can check out the arrangement by following this link <a href="https://www.youtube.com/watch?v=JTYFYtZJXro&t=56s" target="_blank">here</a>. The video showcases the microphone configuration and offers a glimpse into the aSCR method. As you watch, you'll be treated to audio recordings of the Cape Moss frogs and a probable region from which each call originated as estimated by an aSCR model.
 
 ### Introduction to $\texttt{acre}$
 
-We're using a relatively new and slightly unfinished package called $\texttt{acre}$ (named after the method, of course, but also references an "acre", a unit of measurement). This package is essentially a modernized and improved version of the initial aSCR R package, named $\texttt{ascr}$. The $\texttt{acre}$ package carries forward the essentials of the previous one but also introduces the animal density model and a range of other capabilities.
+We're using a relatively new and slightly unfinished package called $\texttt{acre}$ (named after the method, of course, but also references an "acre", a unit of measurement). This package is a modernised and improved version of the initial aSCR R package, named $\texttt{ascr}$. The $\texttt{acre}$ package carries forward the essentials of the previous one but also introduces the animal density model and a range of other capabilities.
 
 For those who have explored other SCR R packages, the structure of the $\texttt{acre}$ package is familiar. Analysis using the $\texttt{acre}$ package occurs in four distinct phases: First, there's the Pre-$\texttt{acre}$ stage, where we prepare our data. Then, we move to the $\texttt{acre}$ formatting process, combining our data for further analysis. Following that, we get into specifying our models in the model fitting. In the last phase, we draw meaningful conclusions from our fitted model.
 
@@ -47,9 +47,9 @@ summary(captures) # summary of dataframe
 length(unique(captures$ID)) # number of unique calls detected
 ```
 
-If you want, you can play around with the dataframe, use functions like tail() to look at the last few detections or try to find out the number of calls detected (see the hint for code).
+If you want, you can play around with the dataframe, use functions like tail() to look at the last few detections or try to determine the number of calls detected (see the hint for code).
 
-The "ID" column contains unique identification numbers for all the calls that were detected, and the column "trap" includes the number of the detector at which the call was recorded. For example, one call with ID "1" was only detected at the second trap. Call "2" was detected at traps three, four and five. Note that the calls aren't labelled in the order they were recorded; we've just used these labels for simplicity.
+The "ID" column contains unique identification numbers for all the detected calls, and the column "trap" includes the number of the detector at which the call was recorded. For example, one call with ID "1" was only detected at the second trap. Call "2" was detected at traps three, four and five. Note that the calls aren't labelled in the order they were recorded; we've just used these labels for simplicity.
 
 Recall from [Chapter 3]{#ch3} that one can have multiple survey occasions and that, typically, acoustic surveys only need one occasion. If we have numerous survey occasions, the column "occasion" will indicate during which occasion the detection was made. Similarly, the "session" column indicates in which session the occasion occurred. We do not deal with multiple sessions or occasions in this Chapter, so both columns consist entirely of 1s.
 
@@ -59,7 +59,7 @@ Depending on your raw data, there are several ways to get to the required form. 
 
 The second object, traps, can be a list, matrix or dataframe. In the context of aSCR, traps refer to the recording devices.
 
-If we had multiple sessions, we would have a list of dataframes or matrices, each containing the Cartesian coordinates of the detector locations. Since we are only working with a single survey occasion, we do not have to worry about the list version of traps right now. The object will be either in matrix or dataframe format for our analysis. Either way, the object should consist of two columns representing our detector locations' x and y Cartesian coordinates. Below, we again look at the first six rows and plot the detector locations.
+If we had multiple sessions, we would have a list of dataframes or matrices, each containing the Cartesian coordinates of the detector locations. Since we are only working with a single survey occasion, we do not have to worry about the list version of traps right now. The object will be either in a matrix or dataframe format for our analysis. Either way, the object should have two columns representing our detector locations' x and y Cartesian coordinates. Below, we again look at the first six rows and plot the detector locations.
 
 ```{r traps, exercise=TRUE,exercise.eval=FALSE}
 head(traps)
@@ -73,7 +73,7 @@ ggplot(traps, aes(x = x, y = y)) +
   ylim(-5, 10) 
 ```
 
-We are using the package ggplot to visualize our data. We supply the dataframe to ggplot(), and then we tell it what to plot on the x and y axes within the brackets of $\texttt{aes()}$, here it is simply the names of the columns of the traps dataframe, 'x' and 'y'. Then we specify that we want a scatterplot with $\texttt{geom_point()}$, i.e. we want a plot of points, and we define the limits of the axes with $\texttt{xlim()}$ and $\texttt{ylim()}$. We've changed the x and y limits on the axes so you can see the arrangement clearly. Adding all these things together with a plus sign (note that this notation only works for ggplot code) plots the data.
+We are using the package ggplot to visualise our data. We supply the dataframe to ggplot(), and then we tell it what to plot on the x and y axes within the brackets of $\texttt{aes()}$, here it is simply the names of the columns of the traps dataframe, 'x' and 'y'. Then we specify that we want a scatterplot with $\texttt{geom_point()}$, i.e. we want a plot of points, and we define the limits of the axes with $\texttt{xlim()}$ and $\texttt{ylim()}$. We've changed the x and y limits on the axes so you can see the arrangement clearly. Adding all these things together with a plus sign (note that this notation only works for ggplot code) plots the data.
 
 #### Mask
 
@@ -85,7 +85,7 @@ SCR theory has shown that the buffer distance isn't super crucial as long as it 
 
 When using a halfnormal detection function, a rule of thumb is four times its "shoulder parameter", $\sigma_{hn}$. We can get a quick and biased estimate of $\sigma_{hn}$ from our data using the function $\texttt{RPSV()}$ from the $\texttt{secr}$ package and multiply it with four to get a buffer distance.
 
-An alternative way is using the function $\texttt{suggest.buffer()}$, also from $\texttt{secr}$. As its name implies, this function provides a mere **suggestion** of buffer distance based on our detection data and traps. The methodology behind the function is not well documented. We're not going to try and explain it here. Still, we can use this function to get a suitable buffer distance and then check whether the distance was wide enough after model fitting.
+An alternative way is using the function $\texttt{suggest.buffer()}$, also from $\texttt{secr}$. As its name implies, this function provides a mere **suggestion** of buffer distance based on our detection data and traps. The methodology behind the function is not well documented. We're not going to try and explain it here. Still, we can use this function to get a suitable buffer distance and check whether the distance was wide enough after model fitting.
 
 We have to convert our data to the $\texttt{secr}$ format to do either of the two methods. First, we add a column to the traps dataframe called "trap" that contains the trap identification number. Then we create a $\texttt{secr}$ traps object with the function $\texttt{read.traps()}$ where we supply the traps dataframe, tell the function which column contains the trap identification numbers and also what type of detectors were used. Recall from Chapter 3 that recording devices and any other detector that does not physically detain animals are proximity detectors.
 
@@ -120,7 +120,7 @@ round(4 * initialsigma) # suggested buffer distance
 suggest.buffer(object = secr_capthist, detectfn = "HN")
 ```
 
-Back to the mask! Below we've created a simple mask with the suggested buffer distance of 14 metres. We visualize the mask and detectors together with ggplot. Inspect the mask object further. Is it a dataframe or a matrix?
+Back to the mask! Below, we've created a simple mask with the suggested buffer distance of 14 metres. We visualise the mask and detectors together with ggplot. Inspect the mask object further. Is it a dataframe or a matrix?
 
 ```{r mask, exercise=TRUE,exercise.eval=FALSE}
 # create mask
@@ -149,11 +149,11 @@ str(mask)
 
 We can also modify our mask by specifying the spacing between mask points with the argument **spacing**, and we can exclude specific mask points that represent non-suitable habitats using the **poly** arguments. Have a look at the help file for the function, which will point you toward the function $\texttt{make.mask()}$ from the $\texttt{secr}$ package.
 
-If you've inspected the object, you would have seen that the created mask object is a matrix. We have to convert it to a dataframe to plot it with ggplot. The code is slightly more complicated than the previous plot, we've colour coded the points using the arguments **color** in the aes functions of each geom_point, and we've assigned a color to each using the $\texttt{scale_color_manual()}$ function. Lastly, a title is added, and the legend title is removed.
+If you've inspected the object, you would have seen that the created mask object is a matrix. We have to convert it to a dataframe to plot it with ggplot. The code is slightly more complicated than the previous plot, we've colour coded the points using the arguments **color** in the aes functions of each geom_point, and we've assigned a colour to each using the $\texttt{scale_color_manual()}$ function. Lastly, a title is added, and the legend title is removed.
 
 ### $\texttt{acre}$ formatting
 
-In the next phase, $\texttt{acre}$ formatting, we supply all the objects from the first phase to a key function of the package called $\texttt{read.acre()}$. This function creates an object of class "acre_data" and essentially links together our detectors and detection data. Any other data objects we need for model fitting is also included here.
+In the next phase, $\texttt{acre}$ formatting, we supply all the objects from the first phase to a key function of the package called $\texttt{read.acre()}$. This function creates an object of class "acre_data" and essentially links our detectors and detection data together. Any other data objects we need for model fitting are also included here.
 
 This function's first three arguments are the objects we created in the previous phase (i.e., captures, traps and our mask). Suppose we have any habitat covariates we want to include in our density model. In that case, we also supply it here with the argument **loc_cov**. The argument takes a dataframe consisting of at least three columns. The first two are the x and y coordinates of where the habitat covariates have been measured, and the remaining columns contain the covariate values. For example:
 
@@ -168,9 +168,9 @@ example_loc_data <- data.frame(
 head(example_loc_data)
 ```
 
-Remember in Chapter 3 that we typically don't have covariate values for every mask point and that we can impute the rest given a few measured locations (like in the dataframe above). In the model fitting phase, the habitat covariates will be scaled to the mask level, i.e. every mask point will have an associated covariate value (more on this below).
+Remember in Chapter 3 that we typically don't have covariate values for every mask point and can impute the rest given a few measured locations (like in the dataframe above). In the model fitting phase, the habitat covariates will be scaled to the mask level, i.e. every mask point will have an associated covariate value (more on this below).
 
-However, suppose we don't have any habitat covariates but do want to model density with a spatial trend (i.e. as a function of the x and/or y coordinates of our mask points). In that case, we have to do the following. You can include a random subset of x and y coordinates pairs (like the example above) or all the mask points. Still, because the function expects a dataframe with more than two columns, we add a random column that won't be used.
+However, suppose we don't have any habitat covariates but want to model density with a spatial trend (i.e. as a function of the x and/or y coordinates of our mask points). In that case, we have to do the following. You can include a random subset of x and y coordinate pairs (like the example above) or all the mask points. Still, because the function expects a dataframe with more than two columns, we add a random column that won't be used.
 
 Below we create a dataframe called "cov_data" that contains the coordinates of all the mask points and a random column called spat_trend where every entry is just "yes". It really doesn't matter what this column is. We then supply the dataframe with the captures, traps and mask object to the $\texttt{read.acre()}$ function.
 
@@ -196,7 +196,7 @@ lightfooti_data <- read.acre(
 
 The commented lines of code show the second way we could have created the mask. Instead of using the argument mask, we supply the arguments of the $\texttt{create.mask()}$ function as a list to the argument **control_create_mask**.
 
-Here we also specify the time units of our density estimate with the argument **survey.length**. If we left our **survey.length** like we did above, a default of one is assigned to the argument (i.e. survey.length = 1). This means that our calling density estimate will be per hectare per survey length, so our estimate will be the number of calls per hectare per 25 seconds. If we want the estimate per second, we assign the value 25 to the argument. This might seem a bit confusing, but think about it this way. We specify the survey length in the units we want our density estimate to be in. If we define the survey length in seconds, our density estimate will be per second. If we want our density estimate to be per minute, we have to supply our survey length in minutes - that is 25/60 minutes. The same applies to per hour or per day; we would then specify 25/3600 (3600 seconds in an hour) or 25/86400 (86400 seconds in a day), respectively. If we don't specify survey length, our density estimate is per one period of time, where the period of time is the survey length.
+Here, we also specify the time units of our density estimate with the argument **survey.length**. If we left our **survey.length** like we did above, a default of one is assigned to the argument (i.e. survey.length = 1). This means that our calling density estimate will be per hectare per survey length, so our estimate will be the number of calls per hectare per 25 seconds. If we want the estimate per second, we assign the value 25 to the argument. This might seem a bit confusing, but think about it this way. We specify the survey length in the units we want our density estimate to be in. If we define the survey length in seconds, our density estimate will be per second. If we want our density estimate to be per minute, we have to supply our survey length in minutes - that is 25/60 minutes. The same applies to per hour or day; we would then specify 25/3600 (3600 seconds in an hour) or 25/86400 (86400 seconds in a day), respectively. If we don't specify the survey length, our density estimate is per one period, where the period is the survey length.
 
 Some other arguments and important points:
 
@@ -210,7 +210,7 @@ Some other arguments and important points:
 
 ### Model fitting
 
-Finally, we are ready to fit some aSCR models! We have gone through the first two phases, preparing our data objects and putting them all together with the $\texttt{read.acre()}$ function. Now, we use the key function, $\texttt{fit.acre()}$, to fit the aSCR model.
+Finally, we are ready to fit some aSCR models! We have gone through the first two phases, preparing our data objects and putting them together with the $\texttt{read.acre()}$ function. Now, we use the key function, $\texttt{fit.acre()}$, to fit the aSCR model.
 
 The first argument of the function (**dat**) is the acre_data object we created with the $\texttt{read.acre()}$ function. Then, we tell the model what our density model is with the **par_extend_model** argument. The default is to assume constant density specified as "D=\~1". The notation reads as Density (D) is (=) a function of (\~) whatever comes next. The model formulas for the examples we looked at in Chapter 3 were specified as follows (plus some other ones):
 
@@ -232,7 +232,7 @@ Then, we tell the function which type of detection function to fit the data in t
 
 Below we fit a constant density model and a half-normal detection function to the frog data and call the model "model1". We don't have to specify the density model in the **par_extend_model** argument, as we use the default model. The detection function parameter, $g0$, is fixed at one since we expect all calls made precisely at the detector locations to be recorded. Straightforward right?
 
-When you run the code, the output will show several lines starting with "outer mgc", this the model finding the best estimates given our data. 
+When you run the code, the output will show several lines starting with "outer mgc"; this is the model finding the best estimates given our data. 
 
 ```{r model1, exercise=TRUE,exercise.eval=FALSE}
 model1 <- fit.acre(
@@ -244,7 +244,7 @@ model1 <- fit.acre(
 
 ### Inference
 
-We can look at the model estimates now that we have fitted a model. Extracting information from our model object is not different from any other model objects you might have used before. We can use the $\texttt{summary()}$ function the look at a summary of our model estimates:
+We can look at the model estimates now that we have fitted a model. Extracting information from our model object is not different from any other model objects you might have used before. We can use the $\texttt{summary()}$ function to look at a summary of our model estimates:
 
 ```{r inf1, exercise=TRUE,exercise.eval=FALSE}
 summary(model1)
@@ -252,7 +252,7 @@ summary(model1)
 
 The output tells us the detection function used to fit the model, the number of sessions, whether or not extra information was inputted into the model, and the method used for constructing [confidence interval]{style="color:#668BA4;font-weight:bold;"} of our estimates. Below is a neat table of our model estimates and associate variance estimates.
 
-For each parameter of our model, we obtain an estimate, a [standard error]{style="color:#668BA4;font-weight:bold;"}, and two additional values under the columns labeled "2.5%" and "97.5%." These values define a [confidence interval]{style="color:#668BA4;font-weight:bold;"} for our estimate. While we assume you have some familiarity with these concepts, we offer a brief explanation here. Alternatively, if you need more information, refer to the welcome page where we provide additional resources.
+For each parameter of our model, we obtain an estimate, a [standard error]{style="color:#668BA4;font-weight:bold;"}, and two additional values under the columns labeled "2.5%" and "97.5%." These values define a [confidence interval]{style="color:#668BA4;font-weight:bold;"} for our estimate. While we assume you have some familiarity with these concepts, we offer a brief explanation here. Alternatively, if you need more information, refer to the welcome page, where we provide additional resources.
 
 Quantifying the uncertainty of our model estimates is crucial. We collect a sample to estimate population-level parameters (e.g., density) when conducting a survey. However, due to random differences between samples, our estimates will vary from one sample to another. The standard error serves as a measure of the variability or precision of an estimate. It tells us how much the estimated parameter is expected to differ across different samples. Smaller standard errors are preferable, as they indicate less variability and increased precision.
 
@@ -308,7 +308,7 @@ Remember, the estimate of density we get here is calling density - the number of
 
 If we want to convert calling density to animal density, we need to know the average call rate of the species. We can use estimates of the average call rate from previous studies or collect independent data to estimate it ourselves. For the latter, you'd have to monitor several individuals separately from the main aSCR survey to estimate a call rate for each and take the average of those.
 
-This was done for eight frogs and the call rates are contained in the object labelled "call_rates". Here, the call rates are per 25 seconds. For example, one frog called roughly 7 times per 25 seconds. If we take the mean of all eight call rates, we get 6.77 calls per individual per 25 seconds. 
+This was done for eight frogs, and the call rates are contained in the object labelled "call_rates". Here, the call rates are per 25 seconds. For example, one frog called roughly 7 times per 25 seconds. If we take the mean of all eight call rates, we get 6.77 calls per individual per 25 seconds. 
 
 ```{r call_rate, exercise=TRUE,exercise.eval=FALSE}
 
@@ -318,9 +318,9 @@ call_rates # per 25 seconds
 
 ```
 
-Converting to animal density is easy, we divide the estimated calling density by the average call rate! However, we have to be careful about the time units here. Make sure the time units will cancel out so you get the number of animals per distance unit only. Both our calling density estimate and average call rate are per 25 seconds, so we are good to go. What if our density estimate was per second? Then you would simply have to divide the call rates by 25 and take the mean to get per individual per second. 
+Converting to animal density is easy; we divide the estimated calling density by the average call rate! However, we have to be careful about the time units here. Make sure the time units will cancel out so you get the number of animals per distance unit only. Both our calling density estimate and average call rate are per 25 seconds, so we are good to go. What if our density estimate was per second? Then, you would simply have to divide the call rates by 25 and take the mean to get per individual per second. 
 
-Using the call average call rate we calculated above, convert the calling density estimate to animal density below. You should get an a value of about 541 animals per hectare.
+Using the call average call rate we calculated above, convert the calling density estimate to animal density below. You should get a value of about 541 animals per hectare.
 
 ```{r call_to_animal, exercise=TRUE,exercise.eval=FALSE}
 
@@ -343,7 +343,7 @@ Fit the same model but include the argument **survey.length** in the data object
 
 [Tasks:]{.underline}
 
-1.  Fill in the appropriate value for the argument **survey.length** below (remove the underscores).
+1. Fill in the appropriate value for the argument **survey.length** below (remove the underscores).
 
 ```{r exercise1_1, exercise=TRUE,exercise.eval=FALSE}
 
@@ -398,7 +398,7 @@ confint(model2_boot,type="fitted") # confidence intervals
 
 Let's also fit a model with a spatial trend in density.
 
-First, we're going to create a new acre_data object. Below we create an acre_data object just as before, but now we've included the arguments **cue.rates** and **survey.length**. If you completed the previous exercise, you would know that by assigning the value of "25" to the survey length argument, we will get density per second. However, we have included the call rates directly into the $\texttt{read.acre()}$ function.
+First, we're going to create a new acre_data object. Below, we create an acre_data object just as before, but now we've included the arguments **cue.rates** and **survey.length**. If you completed the previous exercise, you would know that by assigning the value of "25" to the survey length argument, we will get density per second. However, we have included the call rates directly into the $\texttt{read.acre()}$ function.
 
 **survey.length** and **cue.rates** work together to convert calling density to animal density by doing the calculation we looked at previously. It's important that the time units of the call rates and survey length match. Our call rates are in seconds, so we specify **survey.length** = 25. If our call rates were per minute, we would have to supply the survey length in minutes, i.e. **survey.length** = 25/60.
 
@@ -415,7 +415,7 @@ lightfooti_data2 <- read.acre(
 
 ```
 
-Below we fit a model with a spatial trend in density. The only new thing is the **par_extend_argument**, which requires that you put the density model in a list.
+Below we fit a model with a spatial trend in density. The only new thing is the **par_extend_argument**, which requires putting the density model in a list.
 
 ```{r model2, exercise=TRUE,exercise.eval=FALSE}
 model3 <- fit.acre(
@@ -430,7 +430,7 @@ Note we've fitted this model purely for demonstrative purposes. There is no obje
 
 [**Tasks:**]{.underline}
 
-1.  Look at the model summary and plot the detection function.
+1. Look at the model summary and plot the detection function.
 
 ```{r exercise1, exercise=TRUE,exercise.eval=FALSE}
 
@@ -443,9 +443,9 @@ show_detfn(model3)
 
 You'll likely have noticed that the model output is a bit different. The detection function parameters remain the same as expected (we haven't changed anything). We have two parameters relating to density: "D.(Intercept)" and "D.x". We briefly mentioned these parameters in Chapter 3 when we looked at the different density models.
 
-When we include habitat or spatial covariates in our density model, $\texttt{fit.acre()}$ automatically models density as a function of these variables using a generalised linear model. If you'd like to know more about this statistical method which is super straightforward to understand, look at the resources on the welcome page. All you need to know for now is that the intercept parameter represents the average calling density when the habitat covariate is zero, i.e., when the x coordinate equals zero. Whether or not this is valuable information depends on the habitat covariate; here, it's not very informative. 
+When we include habitat or spatial covariates in our density model, $\texttt{fit.acre()}$ automatically models density as a function of these variables using a generalised linear model. If you'd like to know more about this statistical method, which is super straightforward to understand, look at the resources on the welcome page. All you need to know for now is that the intercept parameter represents the average calling density when the habitat covariate is zero, i.e., when the x coordinate equals zero. Whether or not this is valuable information depends on the habitat covariate; here, it's not very informative. 
 
-The default for the regression model is to use the so-called log link function. In other words, the log of calling density is modeled as a function of the covariates. We can convert the parameters back to their normal scale by exponentiating them. 
+The default for the regression model is to use the so-called log link function. In other words, the log of calling density is modelled as a function of the covariates. We can convert the parameters back to their normal scale by exponentiating them. 
 
 ```{r backtrans, exercise=TRUE,exercise.eval=FALSE}
 
@@ -454,9 +454,9 @@ exp(model3$coefficients[6]) # effect
 
 ```
 
-Our model estimated roughly 534 frogs per $m^2$ when x = 0. The second parameter, "D.x", is the expected change in animal density per one-unit increase in the habitat covariate. Our model estimated that, on average, animal density increased by roughly 1 frog for every one-metre increase in the x direction. If this value was negative, we would have had a decrease in density for a one unit increase in the x-direction. 
+Our model estimated roughly 534 frogs per $m^2$ when x = 0. The second parameter, "D.x", is the expected change in animal density per one-unit increase in the habitat covariate. Our model estimated that, on average, animal density increased by roughly 1 frog for every one-metre increase in the x direction. If this value was negative, we would have had a decrease in density for a one-unit increase in the x-direction. 
 
-2.  Plot the estimated calling density surface.
+2. Plot the estimated calling density surface.
 
 ```{r exercise3, exercise=TRUE,exercise.eval=FALSE}
 
@@ -472,7 +472,7 @@ Nice! Our density surface reflects the spatial trend we specified. The model est
 
 **A note of caution:**
 
-A non-constant density model may be misleading when fitting aSCR-CD models. Areas where many calls are estimated to come from, could be due to two things: there could be a lot of animals calling, but there could also be a few individuals making many calls. So when converting from calling density to animal density, areas of high animal density could be due to a small number of acoustically active individuals. The same applies to areas of low calling density. 
+A non-constant density model may be misleading when fitting aSCR-CD models. Areas where many calls are estimated to come from, could be due to two things: there could be a lot of animals calling, but there could also be a few individuals making many calls. So, when converting from calling density to animal density, areas of high animal density could be due to a small number of acoustically active individuals. The same applies to areas of low calling density. 
 
 ::: learnBox
 **Summary:**

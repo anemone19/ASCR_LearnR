@@ -1,22 +1,6 @@
 # Chapter 2 RScript --------------------------------------------------------------------------------
-# Chapter 2 Shiny App 2 --------------------------------------------------------------------------------
-
-# Overview: 
-# This Shiny application offers an interactive visualization of frog detections based on their proximity
-# to various microphones (detectors). It allows users to click on a frog and visualize its distance from 
-# each microphone, emphasizing the ones that detected its call.
-
-# Key features: 
-# Microphone and Frog Distribution Plot: A plot showcasing the distribution of frogs and microphones. 
-# Frogs are color-coded based on whether they were detected or not. 
-# Microphones are consistently displayed across plots.
-
-# Individual Frog Detection Plot: 
-# When a user clicks on a frog in the main plot, a secondary plot showcases the distances from that frog 
-# to all microphones. If the frog was detected, the distances to the microphones that detected the frog 
-# are emphasized in color.
-
 # Required Libraries
+
 library(shiny)
 library(tidyverse)
 library(DT)
@@ -24,7 +8,6 @@ library(ggimage)
 library(shinyWidgets)
 library(shinydashboard)
 library(secr)
-library(RColorBrewer)
 library(plotly)
 library(ggplotify)
 library(tippy)
@@ -34,7 +17,6 @@ library(tippy)
 # load images for plotting
 frog_image <- "images/frogGraphic.png"
 micro_image <- "images/micro.png"
-
 
 # Function(s) -----------------------------------------------------------------------------------
 
@@ -47,7 +29,38 @@ e2dist <- function(x, y) {
   matrix(dvec, nrow = nrow(x), ncol = nrow(y), byrow = F)
 }
 
-# Objects for first shiny app -------------------------------------------------------------------
+add_annotation <- function(trap, frog, det = "no") {
+  x1 <- unlist(trap[1]) # x1/x2/y1/y2 defined here for shorthand later
+  x2 <- unlist(frog[1])
+  y1 <- unlist(trap[2])
+  y2 <- unlist(frog[2])
+  
+  if (det == "yes") {
+    lineCol <- "darkgreen"
+    textCol <- "darkgreen"
+  } else {
+    lineCol <- "grey"
+    textCol <- "black"
+  }
+  
+  # the function will return the last object it creates, ie this list with two objects
+  list(
+    annotate("segment",
+             color = lineCol,
+             x = x1, xend = x2,
+             y = y1, yend = y2
+    ),
+    annotate("text",
+             color = textCol, size = 4.5,
+             x = x1, y = y1 + 13,
+             label = paste(
+               round(sqrt((x1 - x2)^2 + (y1 - y2)^2), digits = 1)
+             )
+    )
+  )
+}
+
+# Setup Shiny App 1 -------------------------------------------------------------------
 
 # Created microphone array with make.grid() from package secr
 #  9 microphones, 50 units apart, detector is of type proximity
@@ -90,7 +103,64 @@ det_dat <- temppop %>%
     num = row_number()
   )
 
-# convert
+save(temppop,CH_combined,det_array,det_dat,trapdf,file = "data/CH2_1.RData")
+
+# Setup Shiny App 3 ----------------------------------------------------------------------
+
+#calculate distances between all frogs and detectors
+distances <- t(e2dist(det_array, temppop))
+distances_df <- data.frame(d = as.numeric(distances))
+
+# distances between detected frogs and all detectors
+all_detect_distances <- distances[as.numeric(rownames(CH_combined)), ]
+
+# extract only distances of detected frogs, i.e. where CH_combined = 1
+
+detect_distances <- c()
+
+# Checking if entry in df1 is equal to 1 and extracting corresponding entry from df2
+for (i in 1:nrow(CH_combined)) {
+  for (j in 1:ncol(CH_combined)) {
+    if (CH_combined[i, j] == 1) {
+      detect_distances <- c(detect_distances, all_detect_distances[i, j])
+    }
+  }
+}
+
+# create dataframe with detected distances,
+# and frog locations of all not detected that were within 50 m from a microphone
+# detect_distances_df <- data.frame(d = detect_distances)
+
+distdf <- data.frame(
+  dist = c(detect_distances, as.numeric(distances)),
+  group = c(rep("Detected", length(detect_distances)), rep("All", nrow(distances_df)))
+)
+
+# Proportions plot
+
+# Cut distances into intervals
+# Define the intervals
+intervals <- seq(0, 50, 10)
+
+interval_counts_det <- table(cut(subset(distdf$dist, 
+                                        distdf$group == "Detected"),
+                                 breaks = intervals,
+                                 include.lowest = TRUE))
+
+interval_counts_Ndet <- table(cut(subset(distdf$dist, 
+                                         distdf$group == "All"),
+                                  breaks = intervals,
+                                  include.lowest = TRUE))
+
+props <- as.numeric(interval_counts_det / interval_counts_Ndet)
+
+# Given dataframe 'prop'
+prop <- data.frame(
+  Var1 = c(5,15,25,35,45),
+  Freq = props
+)
+
+# Setup Shiny App 2 ----------------------------------------------------------------------
 
 # Create a matrix of row and column indices where capt == 1
 indices <- which(as.data.frame(CH_combined) == 1, arr.ind = TRUE)
@@ -102,60 +172,6 @@ traps_ID <- indices[, 2]
 # Create a dataframe with the results
 captures <- data.frame(ID, trap = traps_ID) %>%
   arrange(ID)
-
-# calculate distances between all frogs and detectors
-distances <- as.data.frame(t(e2dist(det_array, temppop)))
-
-
-# FUNCTION ADD_ANNOTATION
-# Description:
-# This function is designed to visually annotate a relationship between two points (represented by trap and frog)
-# on a graphical plot. Specifically, it draws a line segment connecting the two points and 
-# places a text label near the starting point (trap) indicating the Euclidean distance between the two points.
-
-# Parameters: 
-# trap: A vector or list containing the x and y coordinates of the starting point (typically representing the trap's location).
-# frog: A vector or list containing the x and y coordinates of the ending point (typically representing the frog's location).
-# det (default = "no"): A string indicating if the annotation should be highlighted. 
-# If set to "yes", the line segment and text will be colored dark green; 
-# otherwise, they will be colored grey (for the line) and black (for the text).
-
-# Return: 
-# A line segment (annotate("segment", ...)) connecting the trap and frog points.
-# A text label (annotate("text", ...)) positioned slightly above the trap point, 
-# displaying the Euclidean distance between trap and frog.
-
-add_annotation <- function(trap, frog, det = "no") {
-  x1 <- unlist(trap[1]) # x1/x2/y1/y2 defined here for shorthand later
-  x2 <- unlist(frog[1])
-  y1 <- unlist(trap[2])
-  y2 <- unlist(frog[2])
-
-  if (det == "yes") {
-    lineCol <- "darkgreen"
-    textCol <- "darkgreen"
-  } else {
-    lineCol <- "grey"
-    textCol <- "black"
-  }
-
-  # the function will return the last object it creates, ie this list with two objects
-  list(
-    annotate("segment",
-      color = lineCol,
-      x = x1, xend = x2,
-      y = y1, yend = y2
-    ),
-    annotate("text",
-      color = textCol, size = 4,
-      x = x1, y = y1 + 13,
-      label = paste(
-        round(sqrt((x1 - x2)^2 + (y1 - y2)^2), digits = 1)
-      )
-    )
-  )
-}
-
 
 # UI ----------------------------------------------------------------------------------------------------------------
 

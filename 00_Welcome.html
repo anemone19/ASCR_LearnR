@@ -237,10 +237,13 @@ run with the <strong>Run code</strong> button and play around with or it
 will be left empty for you to write your own code. In the latter case,
 you’ll be able to get help through either a hint or examining the
 solution (below a hint is included, but solutions will appear in the
-same way). At any point, you can click <strong>Start over</strong> to
-clear the code block and restart from scratch. When you press
-<strong>Run code</strong> the output will appear below the code
-block.</p>
+same way).</p>
+<p>At any point, you can click <strong>Start over</strong> to clear the
+code block and restart from scratch. This applies to the whole tutorial
+as well, you can click the ‘Start Over’ which appears beneath the
+tutorial outline on the left to reset everything.</p>
+<p>When you press <strong>Run code</strong> the output will appear below
+the code block.</p>
 <div class="tutorial-exercise" data-label="example" data-completion="1"
 data-diagnostics="1" data-startover="1" data-lines="0">
 <pre class="text"><code># some code</code></pre>
@@ -273,10 +276,10 @@ own system. This is what’s so neat about learnr tutorials! However, if
 you want to follow along with the R analysis presented in Chapter 5, you
 have to install the following packages:</p>
 <ul>
-<li>acre</li>
-<li>ascr</li>
-<li>secr</li>
-<li>tidyverse</li>
+<li><span class="math inline">\(\texttt{acre}\)</span></li>
+<li><span class="math inline">\(\texttt{ascr}\)</span></li>
+<li><span class="math inline">\(\texttt{secr}\)</span></li>
+<li><span class="math inline">\(\texttt{tidyverse}\)</span></li>
 </ul>
 <p>The last two packages you can install with base R,
 i.e. install.packages(“package_name”). Both the acoustic SCR packages,
@@ -300,8 +303,7 @@ the data we use in for analysis, so you’ll need to install it too. We
 never fit any models with the ascr package, if you’d like to do that you
 will have to install a specific model builder on your computer and you
 can find instructions on how to that on the package github repository,
-<a href="https://github.com/b-steve/ascr" target="_blank"> here
-</a>.</p>
+<a href="https://github.com/b-steve/ascr" target="_blank"> here.</a></p>
 </div>
 </div>
 <div id="section-resources" class="section level3">
@@ -595,12 +597,14 @@ For example’s sake, we’ll say that we’ve measured distance in meters.
 For frogs that were detected, the distances to the microphones that
 picked up their call will be in green.</p>
 <div class="container-fluid">
+<div class="container-fluid">
 <div class="row">
 <div class="col-sm-6">
 <div class="shiny-plot-output html-fill-item" data-click-clip="TRUE" data-click-id="plot_click" id="distPlot" style="width:100%;height:400px;"></div>
 </div>
 <div class="col-sm-6">
 <div class="shiny-plot-output html-fill-item" id="isoFrogPlot" style="width:100%;height:400px;"></div>
+</div>
 </div>
 </div>
 </div>
@@ -947,28 +951,28 @@ for regions with high levels of noise, we have low density and vice
 versa.</p>
 <div class="container-fluid">
 <div class="tabbable">
-<ul class="nav nav-tabs" data-tabsetid="5685">
+<ul class="nav nav-tabs" data-tabsetid="1739">
 <li class="active">
-<a href="#tab-5685-1" data-toggle="tab" data-bs-toggle="tab" data-value="Linear trend">Linear trend</a>
+<a href="#tab-1739-1" data-toggle="tab" data-bs-toggle="tab" data-value="Linear trend">Linear trend</a>
 </li>
 <li>
-<a href="#tab-5685-2" data-toggle="tab" data-bs-toggle="tab" data-value="Quadratic trend">Quadratic trend</a>
+<a href="#tab-1739-2" data-toggle="tab" data-bs-toggle="tab" data-value="Quadratic trend">Quadratic trend</a>
 </li>
 <li>
-<a href="#tab-5685-3" data-toggle="tab" data-bs-toggle="tab" data-value="Forest cover">Forest cover</a>
+<a href="#tab-1739-3" data-toggle="tab" data-bs-toggle="tab" data-value="Forest cover">Forest cover</a>
 </li>
 <li>
-<a href="#tab-5685-4" data-toggle="tab" data-bs-toggle="tab" data-value="Noise">Noise</a>
+<a href="#tab-1739-4" data-toggle="tab" data-bs-toggle="tab" data-value="Noise">Noise</a>
 </li>
 </ul>
-<div class="tab-content" data-tabsetid="5685">
-<div class="tab-pane active" data-value="Linear trend" fluid="TRUE" id="tab-5685-1">
+<div class="tab-content" data-tabsetid="1739">
+<div class="tab-pane active" data-value="Linear trend" fluid="TRUE" id="tab-1739-1">
 <div class="shiny-plot-output html-fill-item" id="linearPlot" style="width:100%;height:400px;"></div>
 </div>
-<div class="tab-pane" data-value="Quadratic trend" fluid="TRUE" id="tab-5685-2">
+<div class="tab-pane" data-value="Quadratic trend" fluid="TRUE" id="tab-1739-2">
 <div class="shiny-plot-output html-fill-item" id="quadPlot" style="width:100%;height:400px;"></div>
 </div>
-<div class="tab-pane" data-value="Forest cover" fluid="TRUE" id="tab-5685-3">
+<div class="tab-pane" data-value="Forest cover" fluid="TRUE" id="tab-1739-3">
 <div class="row">
 <div class="col-sm-6">
 <div class="shiny-plot-output html-fill-item" id="forestVolPlot" style="width:100%;height:400px;"></div>
@@ -978,7 +982,7 @@ versa.</p>
 </div>
 </div>
 </div>
-<div class="tab-pane" data-value="Noise" fluid="TRUE" id="tab-5685-4">
+<div class="tab-pane" data-value="Noise" fluid="TRUE" id="tab-1739-4">
 <div class="row">
 <div class="col-sm-6">
 <div class="shiny-plot-output html-fill-item" id="noisePlot" style="width:100%;height:400px;"></div>
@@ -2750,13 +2754,13 @@ learnr:::store_exercise_cache(structure(list(label = "example", global_setup = s
 
 
 <script type="application/shiny-prerendered" data-context="server">
- output$distPlot <- renderPlot({
+  output$distPlot <- renderPlot({
     ggplot(det_dat) +
       geom_image(aes(x = x, y = y, colour = det, image = frog_image), size = 0.09) +
       geom_image(data = det_array, aes(x = x, y = y, image = micro_image), size = 0.2) +
       geom_text(aes(x = x, y = y, label = num),
         vjust = 0.5, hjust = 0.5, colour = "white",
-        size = 3.5, fontface = "bold"
+        size = 2, fontface = "bold"
       ) +
       labs(
         x = "\nX",
@@ -2791,7 +2795,7 @@ learnr:::store_exercise_cache(structure(list(label = "example", global_setup = s
       geom_image(data = det_array, aes(x = x, y = y, image = micro_image), size = 0.2) +
       geom_text(aes(x = x, y = y, label = num),
         vjust = 0.5, hjust = 0.5, colour = "white",
-        size = 3.5, fontface = "bold"
+        size = 2, fontface = "bold"
       ) +
       labs(
         x = "\nX",
@@ -2820,7 +2824,7 @@ learnr:::store_exercise_cache(structure(list(label = "example", global_setup = s
       output$isoFrogPlot <- renderPlot({
         if (frog_row$det == "Detected") {
           # Extract trap IDs
-          micro_index <- captures$trap[captures$ID == frog_row$num]
+          micro_index <- captures_ch2$trap[captures_ch2$ID == frog_row$num]
 
           # Filter trapdf to include only micro_index rows
           micro_trapdf <- trapdf[micro_index, ]
@@ -3206,21 +3210,21 @@ ggplot(forest_mod$pred_data) +
 
 <script type="application/shiny-prerendered" data-context="server">
 learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "quiz1-1", question = structure("How many parameters does a SCR model with constant density and a half-normal detection function have?", html = TRUE, class = c("html", 
-"character")), answers = list(structure(list(id = "lnr_ans_c0f9d64", 
+"character")), answers = list(structure(list(id = "lnr_ans_9adbe11", 
     option = "1 (Density)", value = "1 (Density)", label = structure("1 (Density)", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = structure("Almost, but what about the detection function?", html = TRUE, class = c("html", 
     "character")), type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_d6fc977", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_a3b4017", 
     option = "3 (g0,σ and density)", value = "3 (g0,σ and density)", 
     label = structure("3 (g0,σ and density)", html = TRUE, class = c("html", 
     "character")), correct = TRUE, message = structure("Woohoo! That’s correct :)", html = TRUE, class = c("html", 
     "character")), type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_a7b1cdd", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_373e160", 
     option = "2 (probability of detection and density)", value = "2 (probability of detection and density)", 
     label = structure("2 (probability of detection and density)", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = structure("Not quite, remember probability of detection is now a function of distance.", html = TRUE, class = c("html", 
     "character")), type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_3adc8de", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_9796542", 
     option = "4 (g0, σ, habitat mask and density)", value = "4 (g0, σ, habitat mask and density)", 
     label = structure("4 (g0, σ, habitat mask and density)", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = structure("Close, but remember we have to specify the habitat mask so that our model can estimate density.", html = TRUE, class = c("html", 
@@ -3232,26 +3236,26 @@ learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label 
 "character")), incorrect = structure("Incorrect", html = TRUE, class = c("html", 
 "character")), message = NULL, post_message = NULL), ids = list(
     answer = "quiz1-1-answer", question = "quiz1-1"), loading = NULL, 
-    random_answer_order = TRUE, allow_retry = TRUE, seed = 327777413.847367, 
+    random_answer_order = TRUE, allow_retry = TRUE, seed = 946766670.059127, 
     options = list()), class = c("learnr_radio", "tutorial_question"
 )), session = session)
 </script>
  
 <script type="application/shiny-prerendered" data-context="server">
 learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "quiz1-2", question = structure("What is the primary purpose of SCR models?", html = TRUE, class = c("html", 
-"character")), answers = list(structure(list(id = "lnr_ans_7437ebb", 
+"character")), answers = list(structure(list(id = "lnr_ans_d20e5a", 
     option = "To estimate animal density", value = "To estimate animal density", 
     label = structure("To estimate animal density", html = TRUE, class = c("html", 
     "character")), correct = TRUE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_a8245ba", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_e597db7", 
     option = "To estimate the probability of detection", value = "To estimate the probability of detection", 
     label = structure("To estimate the probability of detection", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_ec2cf23", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_2e4b3dc", 
     option = "To identify individual animals from CR data", value = "To identify individual animals from CR data", 
     label = structure("To identify individual animals from CR data", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_f7094ff", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_b998882", 
     option = "To study animal movement and behaviour", value = "To study animal movement and behaviour", 
     label = structure("To study animal movement and behaviour", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
@@ -3262,7 +3266,7 @@ learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label 
 "character")), incorrect = structure("Try again!", html = TRUE, class = c("html", 
 "character")), message = NULL, post_message = NULL), ids = list(
     answer = "quiz1-2-answer", question = "quiz1-2"), loading = NULL, 
-    random_answer_order = TRUE, allow_retry = TRUE, seed = 1564059721.77168, 
+    random_answer_order = TRUE, allow_retry = TRUE, seed = 1636031814.23816, 
     options = list()), class = c("learnr_radio", "tutorial_question"
 )), session = session)
 </script>
@@ -3270,22 +3274,22 @@ learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label 
 
 <script type="application/shiny-prerendered" data-context="server">
 learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "quiz1-3", question = structure("What is the relationship between the buffer distance and the habitat mask?", html = TRUE, class = c("html", 
-"character")), answers = list(structure(list(id = "lnr_ans_3614b1a", 
+"character")), answers = list(structure(list(id = "lnr_ans_5855d28", 
     option = "The mask includes regions beyond the buffer distance.", 
     value = "The mask includes regions beyond the buffer distance.", 
     label = structure("The mask includes regions beyond the buffer distance.", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_a7a5ebd", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_345eacc", 
     option = "The buffer distance is a parameter within the mask.", 
     value = "The buffer distance is a parameter within the mask.", 
     label = structure("The buffer distance is a parameter within the mask.", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_a9ef2f6", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_96b2458", 
     option = "The buffer distance defines the mask area, it is the minimum distance between a detector and the mask boundary.", 
     value = "The buffer distance defines the mask area, it is the minimum distance between a detector and the mask boundary.", 
     label = structure("The buffer distance defines the mask area, it is the minimum distance between a detector and the mask boundary.", html = TRUE, class = c("html", 
     "character")), correct = TRUE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_7814cf8", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_4706b1", 
     option = "The mask defines the length of the buffer distance specified.", 
     value = "The mask defines the length of the buffer distance specified.", 
     label = structure("The mask defines the length of the buffer distance specified.", html = TRUE, class = c("html", 
@@ -3297,26 +3301,26 @@ learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label 
 "character")), incorrect = structure("Incorrect, if you’re unsure why not play around with the buffer distance again.", html = TRUE, class = c("html", 
 "character")), message = NULL, post_message = NULL), ids = list(
     answer = "quiz1-3-answer", question = "quiz1-3"), loading = NULL, 
-    random_answer_order = TRUE, allow_retry = TRUE, seed = 1541386062.78224, 
+    random_answer_order = TRUE, allow_retry = TRUE, seed = 1804920084.15952, 
     options = list()), class = c("learnr_radio", "tutorial_question"
 )), session = session)
 </script>
  
 <script type="application/shiny-prerendered" data-context="server">
 learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "quiz1-4", question = structure("Which term is used to describe the assumption of animals being evenly distributed across space?", html = TRUE, class = c("html", 
-"character")), answers = list(structure(list(id = "lnr_ans_eaf80f7", 
+"character")), answers = list(structure(list(id = "lnr_ans_803552f", 
     option = "Spatial point pattern", value = "Spatial point pattern", 
     label = structure("Spatial point pattern", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_aa93d7a", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_327b13e", 
     option = "Variable intensity", value = "Variable intensity", 
     label = structure("Variable intensity", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_7af2ae4", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_2b1bfce", 
     option = "Constant density", value = "Constant density", 
     label = structure("Constant density", html = TRUE, class = c("html", 
     "character")), correct = TRUE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_329ecf9", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_df107ff", 
     option = "Inhomogenous density", value = "Inhomogenous density", 
     label = structure("Inhomogenous density", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
@@ -3327,7 +3331,7 @@ learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label 
 "character")), incorrect = structure("Nope!", html = TRUE, class = c("html", 
 "character")), message = NULL, post_message = NULL), ids = list(
     answer = "quiz1-4-answer", question = "quiz1-4"), loading = NULL, 
-    random_answer_order = TRUE, allow_retry = TRUE, seed = 1081792403.99625, 
+    random_answer_order = TRUE, allow_retry = TRUE, seed = 223950476.395715, 
     options = list()), class = c("learnr_radio", "tutorial_question"
 )), session = session)
 </script>
@@ -3335,17 +3339,17 @@ learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label 
 
 <script type="application/shiny-prerendered" data-context="server">
 learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "quiz1-5", question = structure("What component of an SCR model describes how animals are distributed throughout space?", html = TRUE, class = c("html", 
-"character")), answers = list(structure(list(id = "lnr_ans_3cff343", 
+"character")), answers = list(structure(list(id = "lnr_ans_cf87381", 
     option = "Habitat mask", value = "Habitat mask", label = structure("Habitat mask", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_964b312", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_c8b5345", 
     option = "Detection function", value = "Detection function", 
     label = structure("Detection function", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_9b30260", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_aea69bd", 
     option = "Density model", value = "Density model", label = structure("Density model", html = TRUE, class = c("html", 
     "character")), correct = TRUE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_51e8d3d", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_1845fb3", 
     option = "Buffer distance", value = "Buffer distance", label = structure("Buffer distance", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
 "tutorial_quiz_answer"))), button_labels = list(submit = structure("<span data-i18n=\"button.questionsubmit\">Submit Answer<\u002fspan>", html = TRUE, class = c("html", 
@@ -3355,29 +3359,29 @@ learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label 
 "character")), incorrect = structure("Think about the marble example!", html = TRUE, class = c("html", 
 "character")), message = NULL, post_message = NULL), ids = list(
     answer = "quiz1-5-answer", question = "quiz1-5"), loading = NULL, 
-    random_answer_order = TRUE, allow_retry = TRUE, seed = 1893845074.11811, 
+    random_answer_order = TRUE, allow_retry = TRUE, seed = 1249193848.4183, 
     options = list()), class = c("learnr_radio", "tutorial_question"
 )), session = session)
 </script>
  
 <script type="application/shiny-prerendered" data-context="server">
 learnr:::question_prerendered_chunk(structure(list(type = "learnr_checkbox", label = "quiz1-6", question = structure("In the context of SCR modeling, what does the ‘mask’ refer to?", html = TRUE, class = c("html", 
-"character")), answers = list(structure(list(id = "lnr_ans_88d5e43", 
+"character")), answers = list(structure(list(id = "lnr_ans_cfcc7f3", 
     option = "A tool for capturing animals using detectors.", 
     value = "A tool for capturing animals using detectors.", 
     label = structure("A tool for capturing animals using detectors.", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_2f961c9", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_351c202", 
     option = "A set of coordinates defining a habitat where animals occur.", 
     value = "A set of coordinates defining a habitat where animals occur.", 
     label = structure("A set of coordinates defining a habitat where animals occur.", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_a24e26d", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_b6074d6", 
     option = "A set of points or coordinates that define the area within which we are detecting animals.", 
     value = "A set of points or coordinates that define the area within which we are detecting animals.", 
     label = structure("A set of points or coordinates that define the area within which we are detecting animals.", html = TRUE, class = c("html", 
     "character")), correct = TRUE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_f9d5651", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_962e4da", 
     option = "The mask is a set of coordinates which defines our survey region over which we estimate density. ", 
     value = "The mask is a set of coordinates which defines our survey region over which we estimate density. ", 
     label = structure("The mask is a set of coordinates which defines our survey region over which we estimate density.", html = TRUE, class = c("html", 
@@ -3389,7 +3393,7 @@ learnr:::question_prerendered_chunk(structure(list(type = "learnr_checkbox", lab
 "character")), incorrect = structure("Not quite!", html = TRUE, class = c("html", 
 "character")), message = NULL, post_message = NULL), ids = list(
     answer = "quiz1-6-answer", question = "quiz1-6"), loading = NULL, 
-    random_answer_order = TRUE, allow_retry = TRUE, seed = 84189601.9607962, 
+    random_answer_order = TRUE, allow_retry = TRUE, seed = 1685593068.21508, 
     options = list()), class = c("learnr_checkbox", "tutorial_question"
 )), session = session)
 </script>
@@ -3397,21 +3401,21 @@ learnr:::question_prerendered_chunk(structure(list(type = "learnr_checkbox", lab
 
 <script type="application/shiny-prerendered" data-context="server">
 learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "quiz1-7", question = structure("What is the main advantage of using a spatially explicit capture-recapture model?", html = TRUE, class = c("html", 
-"character")), answers = list(structure(list(id = "lnr_ans_1d3256d", 
+"character")), answers = list(structure(list(id = "lnr_ans_feff765", 
     option = "It simplifies the analysis process.", value = "It simplifies the analysis process.", 
     label = structure("It simplifies the analysis process.", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_a4cd2b9", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_639e7a6", 
     option = "It eliminates the need for habitat covariates.", 
     value = "It eliminates the need for habitat covariates.", 
     label = structure("It eliminates the need for habitat covariates.", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_f46aee3", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_291f4eb", 
     option = "It focuses only on animal density estimation.", 
     value = "It focuses only on animal density estimation.", 
     label = structure("It focuses only on animal density estimation.", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_452064", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_12ac276", 
     option = "It accounts for spatial variation in detection probability.", 
     value = "It accounts for spatial variation in detection probability.", 
     label = structure("It accounts for spatial variation in detection probability.", html = TRUE, class = c("html", 
@@ -3423,23 +3427,23 @@ learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label 
 "character")), incorrect = structure("Not quite!", html = TRUE, class = c("html", 
 "character")), message = NULL, post_message = NULL), ids = list(
     answer = "quiz1-7-answer", question = "quiz1-7"), loading = NULL, 
-    random_answer_order = TRUE, allow_retry = TRUE, seed = 742712141.154148, 
+    random_answer_order = TRUE, allow_retry = TRUE, seed = 2061285927.54014, 
     options = list()), class = c("learnr_radio", "tutorial_question"
 )), session = session)
 </script>
  
 <script type="application/shiny-prerendered" data-context="server">
 learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "quiz1-8", question = structure("Which parameter of the detection function specifies the probability of detection when distance is zero?", html = TRUE, class = c("html", 
-"character")), answers = list(structure(list(id = "lnr_ans_27ddc8e", 
+"character")), answers = list(structure(list(id = "lnr_ans_bff54e", 
     option = "$g0$", value = "$g0$", label = structure("\\(g0\\)", html = TRUE, class = c("html", 
     "character")), correct = TRUE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_5df73fb", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_3ed52ad", 
     option = "$z0$", value = "$z0$", label = structure("\\(z0\\)", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_a09aca8", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_524f28f", 
     option = "$\\sigma$", value = "$\\sigma$", label = structure("\\(\\sigma\\)", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_da586b2", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_c78a129", 
     option = "$z$", value = "$z$", label = structure("\\(z\\)", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
 "tutorial_quiz_answer"))), button_labels = list(submit = structure("<span data-i18n=\"button.questionsubmit\">Submit Answer<\u002fspan>", html = TRUE, class = c("html", 
@@ -3449,7 +3453,7 @@ learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label 
 "character")), incorrect = structure("Not quite!", html = TRUE, class = c("html", 
 "character")), message = NULL, post_message = NULL), ids = list(
     answer = "quiz1-8-answer", question = "quiz1-8"), loading = NULL, 
-    random_answer_order = TRUE, allow_retry = TRUE, seed = 341815253.34083, 
+    random_answer_order = TRUE, allow_retry = TRUE, seed = 118652561.444748, 
     options = list()), class = c("learnr_radio", "tutorial_question"
 )), session = session)
 </script>
@@ -3457,22 +3461,22 @@ learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label 
 
 <script type="application/shiny-prerendered" data-context="server">
 learnr:::question_prerendered_chunk(structure(list(type = "learnr_checkbox", label = "quiz1-9", question = structure("Why can’t we assume constant probability of detection throughout the survey region?", html = TRUE, class = c("html", 
-"character")), answers = list(structure(list(id = "lnr_ans_7008690", 
+"character")), answers = list(structure(list(id = "lnr_ans_b445b2d", 
     option = "Animals closer to detectors are more likely to get detected than those further away.", 
     value = "Animals closer to detectors are more likely to get detected than those further away.", 
     label = structure("Animals closer to detectors are more likely to get detected than those further away.", html = TRUE, class = c("html", 
     "character")), correct = TRUE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_8012fdb", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_8885696", 
     option = "It is realistic, detectors can record animal calls equally regardless of where the animal are located.", 
     value = "It is realistic, detectors can record animal calls equally regardless of where the animal are located.", 
     label = structure("It is realistic, detectors can record animal calls equally regardless of where the animal are located.", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_d52a8f7", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_69351ad", 
     option = "Besides distance, other factors may also influence an animals' probability of detection such as the volume of it's call.", 
     value = "Besides distance, other factors may also influence an animals' probability of detection such as the volume of it's call.", 
     label = structure("Besides distance, other factors may also influence an animals’ probability of detection such as the volume of it’s call.", html = TRUE, class = c("html", 
     "character")), correct = TRUE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_a44a20c", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_8e435f2", 
     option = "Animals are evenly spread out, so distance doesn't matter. ", 
     value = "Animals are evenly spread out, so distance doesn't matter. ", 
     label = structure("Animals are evenly spread out, so distance doesn’t matter.", html = TRUE, class = c("html", 
@@ -3484,27 +3488,27 @@ learnr:::question_prerendered_chunk(structure(list(type = "learnr_checkbox", lab
 "character")), incorrect = structure("Not quite!", html = TRUE, class = c("html", 
 "character")), message = NULL, post_message = NULL), ids = list(
     answer = "quiz1-9-answer", question = "quiz1-9"), loading = NULL, 
-    random_answer_order = TRUE, allow_retry = TRUE, seed = 414145262.307149, 
+    random_answer_order = TRUE, allow_retry = TRUE, seed = 1321009668.38486, 
     options = list()), class = c("learnr_checkbox", "tutorial_question"
 )), session = session)
 </script>
  
 <script type="application/shiny-prerendered" data-context="server">
 learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "quiz1-10", question = structure("What does the buffer distance ensure regarding detection probability?", html = TRUE, class = c("html", 
-"character")), answers = list(structure(list(id = "lnr_ans_9f494c7", 
+"character")), answers = list(structure(list(id = "lnr_ans_4b59552", 
     option = "It ensures 100% detection within the buffer.", 
     value = "It ensures 100% detection within the buffer.", label = structure("It ensures 100% detection within the buffer.", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_efa568d", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_b96983f", 
     option = "It prevents animals from being detected.", value = "It prevents animals from being detected.", 
     label = structure("It prevents animals from being detected.", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_982b540", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_ced1add", 
     option = "It provides a confidence interval for detection.", 
     value = "It provides a confidence interval for detection.", 
     label = structure("It provides a confidence interval for detection.", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = NULL, type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_9174ffb", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_360317a", 
     option = " It ensures detection probability reaches zero within the sampled area.", 
     value = " It ensures detection probability reaches zero within the sampled area.", 
     label = structure("It ensures detection probability reaches zero within the sampled area.", html = TRUE, class = c("html", 
@@ -3516,7 +3520,7 @@ learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label 
 "character")), incorrect = structure("Not quite!", html = TRUE, class = c("html", 
 "character")), message = NULL, post_message = NULL), ids = list(
     answer = "quiz1-10-answer", question = "quiz1-10"), loading = NULL, 
-    random_answer_order = TRUE, allow_retry = TRUE, seed = 1434439590.83204, 
+    random_answer_order = TRUE, allow_retry = TRUE, seed = 468845986.781677, 
     options = list()), class = c("learnr_radio", "tutorial_question"
 )), session = session)
 </script>

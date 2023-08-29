@@ -134,7 +134,11 @@ The tutorial is built to progress from chapter to chapter (although you can skip
 
 #### Exercises and quizzes 
 
-In Chapter 5, we start to code in R using "code blocks", like this one below. Either the code blocks with already have code in for you to run with the **Run code** button and play around with or it will be left empty for you to write your own code. In the latter case, you'll be able to get help through either a hint or examining the solution (below a hint is included, but solutions will appear in the same way). At any point, you can click **Start over** to clear the code block and restart from scratch. When you press **Run code** the output will appear below the code block. 
+In Chapter 5, we start to code in R using "code blocks", like this one below. Either the code blocks with already have code in for you to run with the **Run code** button and play around with or it will be left empty for you to write your own code. In the latter case, you'll be able to get help through either a hint or examining the solution (below a hint is included, but solutions will appear in the same way). 
+
+At any point, you can click **Start over** to clear the code block and restart from scratch. This applies to the whole tutorial as well, you can click the 'Start Over' which appears beneath the tutorial outline on the left to reset everything. 
+
+When you press **Run code** the output will appear below the code block. 
 
 ```{r example, exercise=TRUE,exercise.eval=FALSE}
 
@@ -157,10 +161,10 @@ Throughout the tutorial there are interactive graphs and environments which will
 
 Nowhere in the tutorial are you required to run your own code on your own system. This is what's so neat about learnr tutorials! However, if you want to follow along with the R analysis presented in Chapter 5, you have to install the following packages:
 
--   acre
--   ascr
--   secr
--   tidyverse
+-   $\texttt{acre}$
+-   $\texttt{ascr}$
+-   $\texttt{secr}$
+-   $\texttt{tidyverse}$
 
 The last two packages you can install with base R, i.e. install.packages("package_name"). Both the acoustic SCR packages, acre and ascr, require you to install them from github with the package devtools. Here is R code you can use to install the packages:
 
@@ -180,7 +184,7 @@ library(ascr)
 
 ```
 
-The main package for implementing aSCR models is the $\texttt{acre}$ package, but the other aSCR package, $\texttt{ascr}$, contains the data we use in for analysis, so you'll need to install it too. We never fit any models with the ascr package, if you'd like to do that you will have to install a specific model builder on your computer and you can find instructions on how to that on the package github repository, <a href="https://github.com/b-steve/ascr" target="_blank"> here </a>.
+The main package for implementing aSCR models is the $\texttt{acre}$ package, but the other aSCR package, $\texttt{ascr}$, contains the data we use in for analysis, so you'll need to install it too. We never fit any models with the ascr package, if you'd like to do that you will have to install a specific model builder on your computer and you can find instructions on how to that on the package github repository, <a href="https://github.com/b-steve/ascr" target="_blank"> here.</a>
 
 ### Resources
 

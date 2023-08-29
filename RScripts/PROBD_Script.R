@@ -170,8 +170,8 @@ ID <- rownames(indices)
 traps_ID <- indices[, 2]
 
 # Create a dataframe with the results
-captures <- data.frame(ID, trap = traps_ID) %>%
+captures_ch2 <- data.frame(ID, trap = traps_ID) %>%
   arrange(ID)
 
-save(distdf,prop,captures,file="data/CH2_2.RData")
+save(distdf,prop,captures_ch2,file="data/CH2_2.RData")
 
