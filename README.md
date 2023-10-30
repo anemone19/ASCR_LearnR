@@ -37,4 +37,4 @@ Follow these simple steps to run the tutorial on your local machine:
 5. **Or Access Online:**
    - You can also access the tutorial online via the following link: [ASCR_LearnR Shiny App](https://anecloete.shinyapps.io/aSCRTut/).
 
-Explore, learn, and enjoy the world of acoustic spatial capture-recapture with ASCR_LearnR! If you have any questions or feedback, feel free to [contact Ané Cloete](mailto:ane.cloete@email.com).
+Explore, learn, and enjoy the world of acoustic spatial capture-recapture with ASCR_LearnR! If you have any questions or feedback, feel free to [email me](mailto:cloeteane19@email.com).
