@@ -189,7 +189,7 @@ model1_boot$coefficients
 
 summary(model1_boot)
 
-acre::stdEr(model1_boot) # standard errors
+acre::stdEr(model1_boot,types = "fitted") # standard errors
 
 confint(model1_boot,type="fitted")
 
@@ -229,9 +229,10 @@ summary(model2)
 
 # variance
 
-model2_boot <- boot.acre(model2, N = 10) # bootstrapping
+model2_boot <- boot.acre(model2, N = 5) # bootstrapping
 
-acre::stdEr(model2_boot) # standard errors
+acre::stdEr(model2_boot,pars="fitted") # standard errors
+
 confint(model2_boot,type="fitted") # confidence intervals
 
 # SPATIAL TREND ------------------------------------------------------------------------

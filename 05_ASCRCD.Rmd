@@ -98,14 +98,14 @@ traps$trap <- rownames(traps) # add trap column with trap ids
 secr_traps <- read.traps(
   data = traps, # trap layout data
   trapID = "trap", # name of ID column
-  detector = "proximity"
-) # detector type
+  detector = "proximity" # detector type
+)
 
 secr_capthist <- make.capthist(
   captures = captures, # captures
   traps = secr_traps, # traps
-  fmt = "trapID"
-) # format of captures
+  fmt = "trapID" # format of captures
+) 
 
 # quick and biased sigma
 initialsigma <- RPSV(
@@ -278,14 +278,13 @@ model1_boot$
   
 ```
 
-A lot is going on here! Luckily, we don't have to delve into all of these. We apply the function, $\texttt{stdEr()}$, to our bootstrap object to obtain the standard errors. To ensure we use the function from the correct package, we use the following notation $\texttt{acre::stdEr()}$.
+A lot is going on here! Luckily, we don't have to delve into all of these. We apply the function, $\texttt{stdEr()}$, to our bootstrap object to obtain the standard errors. To ensure we use the function from the correct package, we use the following notation $\texttt{acre::stdEr()}$. 
 
-We extract the confidence intervals using the function $\texttt{confint()}$ and specify the argument **type** as "fitted" to ensure our confidence intervals are on the same scale as our estimates. 
+Similarly, we extract the confidence intervals using the function $\texttt{confint()}$. For both, we have to add the argument **type** and assign the character "fitted" to it. This is to ensure the standard errors and confidence intervals are on the same scale as our estimates (more on this later). 
 
 ```{r stder, exercise=TRUE,exercise.eval=FALSE}
-acre::stdEr(model1_boot)
-
-confint(model1_boot, type="fitted")
+acre::stdEr(model1_boot, type = "fitted") # standard errors
+confint(model1_boot, type = "fitted")
 ```
 
 Viola! We now have appropriate standard errors and confidence intervals. Let's go back to the model output. The parameters of the detection function, $\sigma$ and $g0$, were estimated to be roughly 5.93 and 1, respectively. We fixed $g0$ at one, so that's to be expected. We can use the function $\texttt{show_detfn()}$ directly with our model object to plot the estimated detection function.
@@ -382,25 +381,27 @@ model2 <- fit.acre(
 summary(model2) 
 ```
 
-3. Obtain appropriate variance estimates using the bootstrap procedure using N = 10 and save the output as "model2_boot".
+3. Obtain appropriate variance estimates using the bootstrap procedure using N = 5 and save the output as "model2_boot".
 
 ```{r exercise1_3, exercise=TRUE,exercise.eval=FALSE} 
 
 ```
 
 ```{r exercise1_3-solution} 
-model2_boot <- boot.acre(model2, N = 10) 
-acre::stdEr(model2_boot)
-confint(model2_boot,type="fitted") # confidence intervals
+model2_boot <- boot.acre(model2, N = 5) # bootstrapping
+
+acre::stdEr(model2_boot, type = "fitted") # standard error
+
+confint(model2_boot, type = "fitted") # confidence intervals
 ```
 
 ### Exercise 2: Non-constant density
 
 Let's also fit a model with a spatial trend in density.
 
-First, we're going to create a new acre_data object. Below, we create an acre_data object just as before, but now we've included the arguments **cue.rates** and **survey.length**. If you completed the previous exercise, you would know that by assigning the value of "25" to the survey length argument, we will get density per second. However, we have included the call rates directly into the $\texttt{read.acre()}$ function.
+First, we're going to create a new acre_data object. Below, we create an acre_data object just as before, but now we've included the arguments **cue.rates** and **survey.length**. If you completed the previous exercise, you would know that by assigning the value of "25" to the survey length argument, we will get density per second. However, we have also included the call rates directly into the $\texttt{read.acre()}$ function.
 
-**survey.length** and **cue.rates** work together to convert calling density to animal density by doing the calculation we looked at previously. It's important that the time units of the call rates and survey length match. Our call rates are in seconds, so we specify **survey.length** = 25. If our call rates were per minute, we would have to supply the survey length in minutes, i.e. **survey.length** = 25/60.
+**survey.length** and **cue.rates** work together to convert calling density to animal density by doing the calculation we looked at previously. It's important that the time units of the call rates and survey length match. Our call rates are in seconds, so we specify **survey.length** = 25. If our call rates were per minute, we would have to supply the survey length in minutes, i.e. **survey.length** = 25/60. In the code below **survey.length** is set to 25, so we need to supply the call rates per second and not per 25 seconds - hence, we divide the call rates with 25. 
 
 ```{r acre_data2, exercise=TRUE,exercise.eval=FALSE}
 
@@ -409,7 +410,7 @@ lightfooti_data2 <- read.acre(
   traps = traps,
   mask = mask,
   loc_cov = cov_dat,
-  cue.rates = call_rates,
+  cue.rates = call_rates/25,
   survey.length = 25
 )
 
