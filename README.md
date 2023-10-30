@@ -1,7 +1,10 @@
-
 # ASCR_LearnR
 
-Welcome to the ASCR_LearnR repository! This repository contains all the files necessary to run a LearnR course teaching the Acoustic Spatial Capture-Recapture (aSCR) technique with applications in R. Dive into the world of aSCR with this comprehensive tutorial which I developed as part of my master's dissertation at the University of St Andrews in Scotland. Acoustic SCR has emerged as a fresh and promising approach in statistical ecology. Despite its potential, the pace of its integration into the field has been relatively slow. I believe one key reason is the limited availability of accessible educational resources. This tutorial aims to bridge that gap by providing an educational platform that simplifies the aSCR methodology for practitioners without an extensive statistical background.
+Welcome to the ASCR_LearnR repository! This repository contains all the files necessary to run a LearnR course teaching the Acoustic Spatial Capture-Recapture (aSCR) technique with applications in R. Dive into the world of aSCR with this comprehensive tutorial which I developed as part of my master's dissertation at the University of St Andrews in Scotland. 
+
+![ASCR_LearnR Logo](/images/aSCR_README.png)
+
+Acoustic SCR has emerged as a fresh and promising approach in statistical ecology. Despite its potential, the pace of its integration into the field has been relatively slow. I believe one key reason is the limited availability of accessible educational resources. This tutorial aims to bridge that gap by providing an educational platform that simplifies the aSCR methodology for practitioners without an extensive statistical background.
 
 ## Contents
 
@@ -19,6 +22,7 @@ Follow these simple steps to run the tutorial on your local machine:
 
 1. **clone of Download the Repository:**
    - Either with terminal commands like shown below, or simply download it straight from GitHub
+     
    ```
    git clone https://github.com/your-username/ASCR_LearnR.git
    ```
